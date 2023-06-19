@@ -2,7 +2,7 @@ for seed in 1 2 3 4 5
  do
  for n in 9 11 13
   do
-  for e in 0.1 0.3
+  for e in 0.1 0.2 0.3
    do
    FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
    python3 random_graph_generator.py -n $n -e $e -s $seed > data/${FILE_NAME}.in
@@ -15,51 +15,51 @@ for seed in 1 2 3 4 5
  do
  for n in 9 11 13
   do
-  for e in 0.1 0.3
+  for e in 0.1 0.2 0.3
    do
-   for k in 2 3
+   for k in 2
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
      ./klta -k $k -h blind -j random -c < data/${FILE_NAME}.in > output/blind-random-${FILE_NAME}k$k.out &
    done
   done
  done
+ echo Random-Random Calculating seed=$seed ... & wait
 done
-echo Random-Random Calculating ... & wait
 echo Random-Random Completed!!
 
 for seed in 1 2 3 4 5
  do
  for n in 9 11 13
   do
-  for e in 0.1 0.3
+  for e in 0.1 0.2 0.3
    do
-   for k in 2 3
+   for k in 2
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
      ./klta -k $k -h singleton -j random -c < data/${FILE_NAME}.in > output/singleton-random-${FILE_NAME}k$k.out &
    done
   done
  done
+ echo Singleton-Random Calculating seed=$seed ... & wait
 done
-echo Singleton-Random Calculating ... & wait
 echo Singleton-Random Completed!!
 
 for seed in 1 2 3 4 5
  do
  for n in 9 11 13
   do
-  for e in 0.1 0.3
+  for e in 0.1 0.2 0.3
    do
-   for k in 2 3
+   for k in 2
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     ./klta -k 2 -h singleton -j nearest -c -u < data/${FILE_NAME}.in > output/singleton-nearest-${FILE_NAME}k$k.out &
+     ./klta -k $k -h singleton -j nearest -c -u < data/${FILE_NAME}.in > output/singleton-nearest-${FILE_NAME}k$k.out &
    done
   done
  done
+ echo Singleton-Nearest Calculating seed=$seed ... & wait
 done
-echo Singleton-Nearest Calculating ... & wait
 echo Singleton-Nearest Completed!!
 
 python3 report.py -d "output/*" -o report.csv
