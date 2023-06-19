@@ -1,4 +1,5 @@
 data/*.in
+data/*.txt
 output/*.out
 
 # Prerequisites
