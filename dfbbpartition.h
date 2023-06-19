@@ -292,14 +292,35 @@ inline bool merge_df_bb_search(
               (partitions[i].elements.size() + partitions[j].elements.size());
           // upperbound_cost += 1;
         }
+        dist_from_i.push_back(
+            std::make_tuple((int)(std::max(partitions[i].h_to_unseen,
+                                           partitions[j].h_to_unseen) +
+                                      std::min(partitions[i].h_to_goal,
+                                               partitions[j].h_to_goal) >
+                                  upperbound_cost),
+                            (int)partitions[j].is_satisfying, 0, 0));
+      }
+      j_order = argsort(dist_from_i);
+    }
+    if (j_order_type == "nearestdist") {
+      for (int j = i + 1; j < partitions_num; j++) {
+        int upperbound_cost = INT_MAX;
+        if (valid_already_found && use_upperbound_cost) {
+          upperbound_cost =
+              best_sumcost - (sumcost - partitions[i].cost_of_cover_path -
+                              partitions[j].cost_of_cover_path);
+          upperbound_cost /=
+              (partitions[i].elements.size() + partitions[j].elements.size());
+          // upperbound_cost += 1;
+        }
+        int tmp_dist = partitions[i].dist(partitions[j]);
         dist_from_i.push_back(std::make_tuple(
             (int)(std::max(partitions[i].h_to_unseen,
                            partitions[j].h_to_unseen) +
                       std::min(partitions[i].h_to_goal,
                                partitions[j].h_to_goal) >
                   upperbound_cost),
-            partitions[i].dist(partitions[j]), (int)partitions[j].is_satisfying,
-            partitions[j].elements.size()));
+            (int)tmp_dist < el, tmp_dist, (int)partitions[j].is_satisfying));
       }
       j_order = argsort(dist_from_i);
     } else if (j_order_type == "pathnearest") {
@@ -315,8 +336,9 @@ inline bool merge_df_bb_search(
     }
 
     for (int j : j_order) {
-      if (j_order_type == "nearest") {
-        if (std::get<0>(dist_from_i[j]) == 1) {
+      if (j_order_type == "nearest" || j_order_type == "nearestdist") {
+        if (std::get<0>(dist_from_i[j]) == 1 ||
+            std::get<1>(dist_from_i[j]) == 1) {
           break;
         }
       }
