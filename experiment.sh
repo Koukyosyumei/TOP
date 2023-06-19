@@ -20,7 +20,7 @@ for seed in 1 2 3 4 5
    for k in 2 3
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     ./klta -k $k -h blind -j random -c < data/${FILE_NAME}.in > output/blind-random-${FILE_NAME}.out &
+     ./klta -k $k -h blind -j random -c < data/${FILE_NAME}.in > output/blind-random-${FILE_NAME}k$k.out &
    done
   done
  done
@@ -37,7 +37,7 @@ for seed in 1 2 3 4 5
    for k in 2 3
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     ./klta -k $k -h singleton -j random -c < data/${FILE_NAME}.in > output/singleton-random-${FILE_NAME}.out &
+     ./klta -k $k -h singleton -j random -c < data/${FILE_NAME}.in > output/singleton-random-${FILE_NAME}k$k.out &
    done
   done
  done
@@ -54,7 +54,7 @@ for seed in 1 2 3 4 5
    for k in 2 3
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     ./klta -k 2 -h singleton -j nearest -c -u < data/${FILE_NAME}.in > output/singleton-nearest-${FILE_NAME}.out &
+     ./klta -k 2 -h singleton -j nearest -c -u < data/${FILE_NAME}.in > output/singleton-nearest-${FILE_NAME}k$k.out &
    done
   done
  done
