@@ -10,7 +10,7 @@ for k in 2 3 5 7
     do
     for seed in 0 1 2 3 4
      do
-     FILE_NAME="${h}-${j}_n=${368}_e=${851}_s=${seed}_"
+     FILE_NAME="${k}-${el}-${h}-${j}_n=${368}_e=${851}_s=${seed}_"
      ./klta -k $k -l ${el} -h blind -j random -u < data/map.in-${seed}.in > output/${FILE_NAME}k$k.out &
     done
     echo $k ${el} $h $j & wait
