@@ -1,3 +1,6 @@
+data/*.in
+output/*.out
+
 # Prerequisites
 *.d
 
