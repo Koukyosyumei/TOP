@@ -19,4 +19,5 @@ for k in 2 3 5
  done
 done
 
+python3 report.py -d "output/*" -o georeport.csv
 
