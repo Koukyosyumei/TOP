@@ -1,4 +1,4 @@
-for seed in 1 2 3 4 5
+for seed in {1..10}
  do
  for n in 11 12 13
   do
@@ -11,7 +11,7 @@ for seed in 1 2 3 4 5
 done
 
 
-for seed in 1 2 3 4 5
+for seed in {1..10}
  do
  for n in 11 12 13
   do
@@ -30,7 +30,7 @@ echo Random-Random Completed!!
 
 for j in random nearest nearestdist
 do
-for seed in 1 2 3 4 5
+for seed in {1..10}
  do
  for n in 11 12 13
   do
