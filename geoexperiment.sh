@@ -2,11 +2,11 @@ python3 reuse.py -f assets/map.in -d data -s 42 -n 5
 
 for k in 2 3 5 7
  do
- for el in 0 100 300 500 700
+ for el in 0 50 100 300
   do
   for h in singleton
    do
-   for j in random nearest
+   for j in random nearest nearestdist
     do
     for seed in 0 1 2 3 4
      do
