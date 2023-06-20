@@ -21,7 +21,7 @@ def add_args(parser):
     parser.add_argument(
         "-s",
         "--seed",
-        default=False,
+        default=42,
         type=int,
     )
     parser.add_argument(

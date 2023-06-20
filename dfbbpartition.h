@@ -201,6 +201,8 @@ inline size_t hash_values_from_diff(size_t cur_hash_val, Partition &p_i,
 
 struct Logger {
   long long cum_count = 0;
+  long long num_evaluated_partitions_till_first_solution = 0;
+  long long num_expanded_node_till_first_solution = 0;
   long long total_num_expanded_node = 0;
   long long skipped_count = 0;
   long long duplicated_count = 0;
@@ -214,11 +216,20 @@ struct Logger {
   }
   void summary() {
     std::cout << "Performance Summary of DFBB:\n";
-    std::cout << "- Number of Evaluated Partitions: " << cum_count << "\n";
-    std::cout << "- Number of Valid Partitions: " << valid_count << "\n";
-    std::cout << "- Number of Skipped Partitions: " << skipped_count << "\n";
-    std::cout << "- Number of Expanded Nodes: " << total_num_expanded_node
+    std::cout << "- Number of Evaluated Partitions in Total: " << cum_count
               << "\n";
+    std::cout << "- Number of Valid Partitions in Total: " << valid_count
+              << "\n";
+    std::cout << "- Number of Skipped Partitions in Total: " << skipped_count
+              << "\n";
+    std::cout << "- Number of Expanded Nodes in Total: "
+              << total_num_expanded_node << "\n";
+    std::cout << "- Number of Evaluted Partitions to Find the First Satisfying "
+                 "Solution: "
+              << num_evaluated_partitions_till_first_solution << "\n";
+    std::cout << "- Number of Expanded Nodes to Find the First Satisfying "
+                 "Solution: "
+              << num_expanded_node_till_first_solution << "\n";
   }
 };
 
@@ -262,7 +273,12 @@ inline bool merge_df_bb_search(
   }
 
   if (valid_paritions) {
-    valid_already_found = true;
+    if (!valid_already_found) {
+      logger.num_evaluated_partitions_till_first_solution = logger.cum_count;
+      logger.num_expanded_node_till_first_solution =
+          logger.total_num_expanded_node;
+      valid_already_found = true;
+    }
     logger.valid_count++;
     return !complete_search;
   }

@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     rows = []
     for path in glob.glob(parsed_args.dir):
-        matches = re.findall(r'=(.*?)_', path)
+        matches = re.findall(r"=(.*?)_", path)
         n = matches[0]
         p = matches[1]
         s = matches[2]
@@ -37,27 +37,61 @@ if __name__ == "__main__":
             if "Performance Summary of DFBB" in lin:
                 break
 
-        if (len(lines) == i + 1):
+        if len(lines) == i + 1:
             continue
 
-        num_evaluated_partitions = int(lines[i+1].split(": ")[1])
-        num_valid_partitions = int(lines[i+2].split(": ")[1])
-        num_skipped_partitions = int(lines[i+3].split(": ")[1])
-        num_expanded_nodes = int(lines[i+4].split(": ")[1])
-        num_anonymized_paths = int(lines[i+5].split(": ")[1])
-        avg_cost_anonymized_paths = float(lines[i+6].split(": ")[1])
+        num_evaluated_partitions = lines[i + 1].split(": ")[1]
+        num_valid_partitions = lines[i + 2].split(": ")[1]
+        num_skipped_partitions = lines[i + 3].split(": ")[1]
+        num_expanded_nodes = lines[i + 4].split(": ")[1]
+        num_evaluated_partitions_till_first = lines[i + 5].split(": ")[1]
+        num_expanded_nodes_till_first = lines[i + 6].split(": ")[1]
+        num_anonymized_paths = lines[i + 7].split(": ")[1]
+        avg_cost_anonymized_paths = lines[i + 8].split(": ")[1]
 
-        rows.append([n, p, s, k, el, v, h, j, c, u,
-                     num_evaluated_partitions, num_valid_partitions,
-                     num_skipped_partitions, num_expanded_nodes,
-                     num_anonymized_paths, avg_cost_anonymized_paths])
+        rows.append(
+            [
+                n,
+                p,
+                s,
+                k,
+                el,
+                v,
+                h,
+                j,
+                c,
+                u,
+                num_evaluated_partitions,
+                num_valid_partitions,
+                num_skipped_partitions,
+                num_expanded_nodes,
+                num_anonymized_paths,
+                num_evaluated_partitions_till_first,
+                num_expanded_nodes_till_first,
+                avg_cost_anonymized_paths,
+            ]
+        )
 
     df = pd.DataFrame(rows)
-    columns = ["num_nodes", "probability_of_edge", "seed",
-               "k", "el", "visibility_func", "heuristic_func", "order_of_j",
-               "complete_search", "upperbound_pruning",
-               "num_evaluated_partitions", "num_valid_partitions",
-               "num_skipped_partitions", "num_expanded_nodes",
-               "num_anonymized_paths", "avg_cost_anonymized_paths"]
+    columns = [
+        "num_nodes",
+        "probability_of_edge",
+        "seed",
+        "k",
+        "el",
+        "visibility_func",
+        "heuristic_func",
+        "order_of_j",
+        "complete_search",
+        "upperbound_pruning",
+        "num_evaluated_partitions",
+        "num_valid_partitions",
+        "num_skipped_partitions",
+        "num_expanded_nodes",
+        "num_anonymized_paths",
+        "num_evaluated_partitions_till_first",
+        "num_expanded_nodes_till_first",
+        "avg_cost_anonymized_paths",
+    ]
     df.columns = columns
     df.to_csv(parsed_args.output_file_path, index=False)
