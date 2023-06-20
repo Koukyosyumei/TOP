@@ -147,6 +147,7 @@ struct Partition {
     for (int i : elements) {
       for (int j : rhs.elements) {
         dist = std::min(dist, asaplookup->at(i)[j]);
+        dist = std::min(dist, asaplookup->at(i)[j]);
       }
     }
     return dist;
@@ -298,7 +299,7 @@ inline bool merge_df_bb_search(
                                       std::min(partitions[i].h_to_goal,
                                                partitions[j].h_to_goal) >
                                   upperbound_cost),
-                            (int)partitions[j].is_satisfying, 0, 0));
+                            0, 0, 0));
       }
       j_order = argsort(dist_from_i);
     }
@@ -314,13 +315,13 @@ inline bool merge_df_bb_search(
           // upperbound_cost += 1;
         }
         int tmp_dist = partitions[i].dist(partitions[j]);
-        dist_from_i.push_back(std::make_tuple(
-            (int)(std::max(partitions[i].h_to_unseen,
-                           partitions[j].h_to_unseen) +
-                      std::min(partitions[i].h_to_goal,
-                               partitions[j].h_to_goal) >
-                  upperbound_cost),
-            (int)tmp_dist < el, tmp_dist, (int)partitions[j].is_satisfying));
+        dist_from_i.push_back(
+            std::make_tuple((int)(std::max(partitions[i].h_to_unseen,
+                                           partitions[j].h_to_unseen) +
+                                      std::min(partitions[i].h_to_goal,
+                                               partitions[j].h_to_goal) >
+                                  upperbound_cost),
+                            (int)tmp_dist < el, tmp_dist, 0));
       }
       j_order = argsort(dist_from_i);
     } else if (j_order_type == "pathnearest") {
