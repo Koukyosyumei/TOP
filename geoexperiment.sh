@@ -8,7 +8,7 @@ for k in 2 3 5
    do
    for j in random nearest nearestdist
     do
-    for seed in ${0..9}
+    for seed in {0..9}
      do
      FILE_NAME="${k}-${el}-${h}-${j}_n=${368}_e=${851}_s=${seed}_"
      ./klta -k $k -l ${el} -h ${h} -j ${j} < data/map.in-${seed}.in > output/${FILE_NAME}k$k.out &
