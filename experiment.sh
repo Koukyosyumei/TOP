@@ -39,7 +39,11 @@ for seed in {1..10}
    for k in 2
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
+     if [ "${j}" == "random" ]; then
+     ./klta -k $k -h singleton -j ${j} -c < data/${FILE_NAME}.in > output/singleton-${j}$-${FILE_NAME}k$k.out &
+     else
      ./klta -k $k -h singleton -j ${j} -c -u < data/${FILE_NAME}.in > output/singleton-${j}$-${FILE_NAME}k$k.out &
+     fi
    done
   done
  done
