@@ -25,13 +25,12 @@ for seed in {1..10}
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
      ./klta -k $k -h $h -j ${j} -c -u < data/${FILE_NAME}.in > output/${h}-${j}$-${FILE_NAME}k$k.out &
-     fi
    done
   done
  done
- echo Singleton-$j Calculating seed=$seed ... & wait
+ echo $h-$j Calculating seed=$seed ... & wait
 done
-echo Singleton-$j Completed!!
+echo $h-$j Completed!!
 done
 done
 
