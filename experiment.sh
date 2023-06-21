@@ -24,7 +24,11 @@ for seed in {1..10}
    for k in 2
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     ./klta -k $k -h $h -j ${j} -c -u < data/${FILE_NAME}.in > output/${h}-${j}$-${FILE_NAME}k$k.out &
+     if [ "${h}" = "blind" ]; then
+       ./klta -k $k -h $h -j ${j} -c < data/${FILE_NAME}.in > output/${h}-${j}$-${FILE_NAME}k$k.out &
+     else
+       ./klta -k $k -h $h -j ${j} -c -u < data/${FILE_NAME}.in > output/${h}-${j}$-${FILE_NAME}k$k.out &
+     fi
    done
   done
  done
