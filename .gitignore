@@ -1,6 +1,9 @@
-data/*.in
-data/*.txt
-output/*.out
+data/*.in*
+data/*.txt*
+output/*.out*
+.ipynb_checkpoints/
+__pycache__/
+cache/
 
 # Prerequisites
 *.d
