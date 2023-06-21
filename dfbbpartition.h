@@ -233,6 +233,90 @@ struct Logger {
   }
 };
 
+inline bool is_prunable(int i, int j, int sumcost,
+                        std::vector<Partition> &partitions,
+                        std::unordered_set<size_t> &checked_partitions,
+                        size_t hash_val, Logger &logger, int &best_sumcard,
+                        int &best_sumcost, int k, int el, bool complete_search,
+                        int log_count, bool &valid_already_found,
+                        bool use_upperbound_cost) {
+  if (checked_partitions.find(
+          hash_values_from_diff(hash_val, partitions[i], partitions[j])) !=
+      checked_partitions.end()) {
+    logger.duplicated_count++;
+    return true;
+  }
+
+  if (partitions[i].is_satisfying && partitions[j].is_satisfying) {
+    logger.skipped_count++;
+    return true;
+  }
+  int upperbound_cost = INT_MAX;
+  if (valid_already_found && use_upperbound_cost) {
+    upperbound_cost =
+        best_sumcost - (sumcost - partitions[i].cost_of_cover_path -
+                        partitions[j].cost_of_cover_path);
+    upperbound_cost /=
+        (partitions[i].elements.size() + partitions[j].elements.size());
+    // upperbound_cost += 1;
+    if (std::max(partitions[i].h_to_unseen, partitions[j].h_to_unseen) +
+            std::min(partitions[i].h_to_goal, partitions[j].h_to_goal) >
+        upperbound_cost) {
+      logger.skipped_count++;
+      return true;
+    }
+  }
+
+  int dist_between_i_j = partitions[i].dist(partitions[j]);
+  if (dist_between_i_j < el || dist_between_i_j == INT_MAX) {
+    logger.skipped_count++;
+    return true;
+  }
+
+  return false;
+}
+
+inline std::vector<size_t>
+orderofj(int i, std::string j_order_type, int sumcost,
+         std::vector<Partition> &partitions,
+         std::unordered_set<size_t> &checked_partitions, size_t hash_val,
+         Logger &logger, int &best_sumcard, int &best_sumcost, int k, int el,
+         bool complete_search, int log_count, bool &valid_already_found,
+         bool use_upperbound_cost) {
+  std::vector<size_t> j_order;
+
+  int partitions_num = partitions.size();
+
+  for (int j = i + 1; j < partitions_num; j++) {
+
+    if (!is_prunable(i, j, sumcost, partitions, checked_partitions, hash_val,
+                     logger, best_sumcard, best_sumcost, k, el, complete_search,
+                     log_count, valid_already_found, use_upperbound_cost)) {
+      j_order.push_back(j);
+    }
+  }
+
+  std::vector<int> dist_from_i;
+  if (j_order_type == "nearest") {
+    dist_from_i.reserve(j_order.size());
+    for (size_t j : j_order) {
+      dist_from_i.push_back(partitions[i].dist(partitions[j]));
+    }
+
+    // std::sort(j_order.begin(), j_order.end(), [&](size_t a, size_t b) {
+    //  return dist_from_i[a] < dist_from_i[b];
+    // });
+    std::vector<size_t> sorted_idx = argsort(dist_from_i);
+    std::vector<size_t> j_order_sorted;
+    for (size_t s : sorted_idx) {
+      j_order_sorted.push_back(j_order[s]);
+    }
+    j_order = j_order_sorted;
+  }
+
+  return j_order;
+}
+
 inline bool merge_df_bb_search(
     std::string j_order_type, std::vector<Partition> &best_partitions,
     std::vector<Partition> &partitions,
@@ -295,91 +379,12 @@ inline bool merge_df_bb_search(
       return false;
     }
 
-    std::vector<size_t> j_order;
-
-    std::vector<std::tuple<int, int, int, int>> dist_from_i;
-    if (j_order_type == "nearest") {
-      for (int j = i + 1; j < partitions_num; j++) {
-        int upperbound_cost = INT_MAX;
-        if (valid_already_found && use_upperbound_cost) {
-          upperbound_cost =
-              best_sumcost - (sumcost - partitions[i].cost_of_cover_path -
-                              partitions[j].cost_of_cover_path);
-          upperbound_cost /=
-              (partitions[i].elements.size() + partitions[j].elements.size());
-          // upperbound_cost += 1;
-        }
-        dist_from_i.push_back(
-            std::make_tuple((int)(std::max(partitions[i].h_to_unseen,
-                                           partitions[j].h_to_unseen) +
-                                      std::min(partitions[i].h_to_goal,
-                                               partitions[j].h_to_goal) >
-                                  upperbound_cost),
-                            0, 0, 0));
-      }
-      j_order = argsort(dist_from_i);
-    }
-    if (j_order_type == "nearestdist") {
-      for (int j = i + 1; j < partitions_num; j++) {
-        int upperbound_cost = INT_MAX;
-        if (valid_already_found && use_upperbound_cost) {
-          upperbound_cost =
-              best_sumcost - (sumcost - partitions[i].cost_of_cover_path -
-                              partitions[j].cost_of_cover_path);
-          upperbound_cost /=
-              (partitions[i].elements.size() + partitions[j].elements.size());
-          // upperbound_cost += 1;
-        }
-        int tmp_dist = partitions[i].dist(partitions[j]);
-        dist_from_i.push_back(
-            std::make_tuple((int)(std::max(partitions[i].h_to_unseen,
-                                           partitions[j].h_to_unseen) +
-                                      std::min(partitions[i].h_to_goal,
-                                               partitions[j].h_to_goal) >
-                                  upperbound_cost),
-                            (int)tmp_dist < el, tmp_dist, 0));
-      }
-      j_order = argsort(dist_from_i);
-    } else if (j_order_type == "pathnearest") {
-      for (int j = i + 1; j < partitions_num; j++) {
-        dist_from_i.push_back(std::make_tuple(
-            partitions[j].is_satisfying, partitions[i].pathdist(partitions[j]),
-            partitions[j].elements.size(), 0));
-      }
-      j_order = argsort(dist_from_i);
-    } else {
-      j_order.resize(partitions_num - i - 1);
-      std::iota(j_order.begin(), j_order.end(), 0);
-    }
+    std::vector<size_t> j_order = orderofj(
+        i, j_order_type, sumcost, partitions, checked_partitions, hash_val,
+        logger, best_sumcard, best_sumcost, k, el, complete_search, log_count,
+        valid_already_found, use_upperbound_cost);
 
     for (int j : j_order) {
-      if (j_order_type == "nearest" || j_order_type == "nearestdist") {
-        if (std::get<0>(dist_from_i[j]) == 1 ||
-            std::get<1>(dist_from_i[j]) == 1) {
-          break;
-        }
-      }
-      j += i + 1;
-      if (checked_partitions.find(
-              hash_values_from_diff(hash_val, partitions[i], partitions[j])) !=
-          checked_partitions.end()) {
-        logger.duplicated_count++;
-        continue;
-      }
-
-      if (partitions[i].is_satisfying && partitions[j].is_satisfying) {
-        logger.skipped_count++;
-        continue;
-      }
-
-      if ((partitions[i].is_cover_path_searched &&
-           partitions[i].cover_path.size() == 0) ||
-          (partitions[j].is_cover_path_searched &&
-           partitions[j].cover_path.size() == 0)) {
-        logger.skipped_count++;
-        continue;
-      }
-
       int upperbound_cost = INT_MAX;
       if (valid_already_found && use_upperbound_cost) {
         upperbound_cost =
@@ -387,19 +392,17 @@ inline bool merge_df_bb_search(
                             partitions[j].cost_of_cover_path);
         upperbound_cost /=
             (partitions[i].elements.size() + partitions[j].elements.size());
-        // upperbound_cost += 1;
       }
       Partition partition_i_j =
           partitions[i].merge(partitions[j], upperbound_cost);
+
       logger.total_num_expanded_node += partition_i_j.num_expanded_nodes;
 
-      if (!partition_i_j.is_satisfy_el()) {
-        logger.skipped_count++;
-        continue;
-      }
+      // if (!partition_i_j.is_satisfy_el()) {
+      //   logger.skipped_count++;
+      //  continue;
+      // }
 
-      // std::cout << partition_i_j.cost_of_cover_path << " " << upperbound_cost
-      //          << std::endl;
       if (partition_i_j.cover_path.size() == 0) {
         logger.skipped_count++;
         continue;

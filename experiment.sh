@@ -11,24 +11,9 @@ for seed in {1..10}
 done
 
 
-for seed in {1..10}
- do
- for n in 11 12 13
-  do
-  for e in 0.2 0.3 0.4
-   do
-   for k in 2
-    do
-     FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     ./klta -k $k -h blind -j random -c < data/${FILE_NAME}.in > output/blind-random-${FILE_NAME}k$k.out &
-   done
-  done
- done
- echo Random-Random Calculating seed=$seed ... & wait
-done
-echo Random-Random Completed!!
-
-for j in random nearest nearestdist
+for h in blind singleton
+do
+for j in random nearest
 do
 for seed in {1..10}
  do
@@ -39,10 +24,7 @@ for seed in {1..10}
    for k in 2
     do
      FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-     if [ "${j}" == "random" ]; then
-     ./klta -k $k -h singleton -j ${j} -c < data/${FILE_NAME}.in > output/singleton-${j}$-${FILE_NAME}k$k.out &
-     else
-     ./klta -k $k -h singleton -j ${j} -c -u < data/${FILE_NAME}.in > output/singleton-${j}$-${FILE_NAME}k$k.out &
+     ./klta -k $k -h $h -j ${j} -c -u < data/${FILE_NAME}.in > output/${h}-${j}$-${FILE_NAME}k$k.out &
      fi
    done
   done
@@ -50,6 +32,7 @@ for seed in {1..10}
  echo Singleton-$j Calculating seed=$seed ... & wait
 done
 echo Singleton-$j Completed!!
+done
 done
 
 python3 report.py -d "output/*" -o report.csv
