@@ -2,6 +2,8 @@
 #include "covering_search.h"
 #include "partition.h"
 #include "utils.h"
+#include <random>
+#include <vector>
 
 inline bool greedypartition_search(
     std::string j_order_type, std::vector<Partition> &best_partitions,
@@ -12,11 +14,6 @@ inline bool greedypartition_search(
 
   size_t hash_val = hash_values_of_partitions(subsets);
   checked_partitions.insert(hash_val);
-  logger.cum_count++;
-
-  if (logger.cum_count != 0 && logger.cum_count % log_count == 0) {
-    logger.print();
-  }
 
   bool valid_paritions = true;
   int sumcost = 0;
@@ -32,19 +29,24 @@ inline bool greedypartition_search(
     }
   }
 
-  if (satisfying_sumcard > best_sumcard ||
-      (satisfying_sumcard == best_sumcard &&
-       satisfying_sumcost < best_sumcost)) {
-    best_sumcard = satisfying_sumcard;
-    best_sumcost = satisfying_sumcost;
-    best_partitions = subsets;
-
-    std::cout << "Best Cardinarity: " << best_sumcard << ", Best AVG Cost: "
-              << (float)best_sumcost / (float)best_sumcard << "\n";
-  }
-
   if (unassigned.size() == 0) {
 
+    logger.cum_count++;
+
+    if (logger.cum_count != 0 && logger.cum_count % log_count == 0) {
+      logger.print();
+    }
+
+    if (satisfying_sumcard > best_sumcard ||
+        (satisfying_sumcard == best_sumcard &&
+         satisfying_sumcost < best_sumcost)) {
+      best_sumcard = satisfying_sumcard;
+      best_sumcost = satisfying_sumcost;
+      best_partitions = subsets;
+
+      std::cout << "Best Cardinarity: " << best_sumcard << ", Best AVG Cost: "
+                << (float)best_sumcost / (float)best_sumcard << "\n";
+    }
     if (valid_paritions) {
       if (!valid_already_found) {
         logger.num_evaluated_partitions_till_first_solution = logger.cum_count;
@@ -60,10 +62,26 @@ inline bool greedypartition_search(
     int n = 0;
     Partition picked = unassigned[n];
     unassigned.erase(unassigned.begin() + n);
-    for (int i = 0; i < subsets.size(); i++) {
+
+    subsets.push_back(picked);
+    bool flag = greedypartition_search(
+        j_order_type, best_partitions, subsets, unassigned, checked_partitions,
+        logger, best_sumcard, best_sumcost, k, el, complete_search, log_count,
+        valid_already_found, use_upperbound_cost);
+    if (flag) {
+      return true;
+    }
+    subsets.erase(subsets.begin() + subsets.size());
+
+    std::vector<int> idxs(subsets.size());
+    std::iota(idxs.begin(), idxs.end(), 0);
+    std::mt19937 engine(logger.cum_count);
+    std::shuffle(idxs.begin(), idxs.end(), engine);
+
+    for (int i : idxs) {
       Partition p_tmp = subsets[i];
 
-      if (is_prunable(picked, subsets[i], sumcost, checked_partitions, hash_val,
+      if (is_prunable(subsets[i], picked, sumcost, checked_partitions, hash_val,
                       logger, best_sumcard, best_sumcost, k, el,
                       complete_search, log_count, valid_already_found,
                       use_upperbound_cost, false)) {
@@ -72,6 +90,12 @@ inline bool greedypartition_search(
 
       subsets[i] = subsets[i].merge(picked, INT_MAX);
       logger.total_num_expanded_node += subsets[i].num_expanded_nodes;
+
+      if (subsets[i].cover_path.size() == 0) {
+        logger.skipped_count++;
+        continue;
+      }
+
       bool flag = greedypartition_search(
           j_order_type, best_partitions, subsets, unassigned,
           checked_partitions, logger, best_sumcard, best_sumcost, k, el,
@@ -81,6 +105,8 @@ inline bool greedypartition_search(
       }
       subsets[i] = p_tmp;
     }
+
+    /*
     subsets.push_back(picked);
     bool flag = greedypartition_search(
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
@@ -88,7 +114,7 @@ inline bool greedypartition_search(
         valid_already_found, use_upperbound_cost);
     if (flag) {
       return true;
-    }
+    }*/
   }
 
   return false;

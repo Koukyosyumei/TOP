@@ -138,11 +138,6 @@ inline bool merge_df_bb_search(
       //  continue;
       // }
 
-      if (partition_i_j.cover_path.size() == 0) {
-        logger.skipped_count++;
-        continue;
-      }
-
       std::vector<Partition> next_partitions;
       if (!partition_i_j.is_satisfying) {
         next_partitions.push_back(partition_i_j);

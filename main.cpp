@@ -6,6 +6,7 @@
 #include "greedypartition.h"
 #include "heuristic.h"
 #include "visibility.h"
+#include <chrono>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -114,6 +115,8 @@ int main(int argc, char *argv[]) {
 
   std::vector<Partition> partitions;
 
+  std::chrono::system_clock::time_point start, end;
+  start = std::chrono::system_clock::now();
   if (partition_type == "merge") {
     partitions =
         merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
@@ -125,7 +128,11 @@ int main(int argc, char *argv[]) {
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
-  std::cout << "Optimal Partition Search Completed\n";
+  end = std::chrono::system_clock::now();
+  float elapsed =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+          .count();
+  std::cout << "Optimal Partition Search Completed " << elapsed << "[ms] \n";
 
   if (partitions.size() == 0) {
     std::cout << " No Satisfying Partition Found\n";

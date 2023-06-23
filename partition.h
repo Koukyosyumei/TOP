@@ -185,14 +185,17 @@ inline std::vector<size_t> argsort(const std::vector<T> &values) {
 }
 
 inline size_t hash_values_from_diff(size_t cur_hash_val, Partition &p_i,
-                                    Partition &p_j) {
+                                    Partition &p_j,
+                                    bool is_cur_containing_pj = true) {
   size_t h_val_i = 0;
   size_t h_val_j = 0;
   for (int e : p_i.elements) {
     h_val_i ^= std::hash<std::string>{}(std::to_string(e));
   }
-  for (int e : p_j.elements) {
-    h_val_j ^= std::hash<std::string>{}(std::to_string(e));
+  if (is_cur_containing_pj) {
+    for (int e : p_j.elements) {
+      h_val_j ^= std::hash<std::string>{}(std::to_string(e));
+    }
   }
   return cur_hash_val ^ std::hash<std::string>{}(std::to_string(h_val_i)) ^
          std::hash<std::string>{}(std::to_string(h_val_j)) ^
@@ -230,6 +233,8 @@ struct Logger {
     std::cout << "- Number of Expanded Nodes to Find the First Satisfying "
                  "Solution: "
               << num_expanded_node_till_first_solution << "\n";
+    std::cout << "- Number of Duplicated Partitions in Total: "
+              << duplicated_count << "\n";
   }
 };
 
@@ -239,8 +244,8 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
                         int &best_sumcost, int k, int el, bool complete_search,
                         int log_count, bool &valid_already_found,
                         bool use_upperbound_cost,
-                        bool use_duplicate_detection = true) {
-  if (use_duplicate_detection &&
+                        bool use_duplication_detection = true) {
+  if (use_duplication_detection &&
       checked_partitions.find(hash_values_from_diff(hash_val, p_i, p_j)) !=
           checked_partitions.end()) {
     logger.duplicated_count++;
@@ -256,7 +261,6 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
     upperbound_cost = best_sumcost - (sumcost - p_i.cost_of_cover_path -
                                       p_j.cost_of_cover_path);
     upperbound_cost /= (p_i.elements.size() + p_j.elements.size());
-    // upperbound_cost += 1;
     if (std::max(p_i.h_to_unseen, p_j.h_to_unseen) +
             std::min(p_i.h_to_goal, p_j.h_to_goal) >
         upperbound_cost) {
