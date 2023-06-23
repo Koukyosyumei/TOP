@@ -122,9 +122,11 @@ inline bool merge_df_bb_search(
     for (int j : j_order) {
       int upperbound_cost = INT_MAX;
       if (valid_already_found && use_upperbound_cost) {
-        upperbound_cost =
-            best_sumcost - (sumcost - partitions[i].cost_of_cover_path -
-                            partitions[j].cost_of_cover_path);
+        upperbound_cost = best_sumcost - (sumcost -
+                                          partitions[i].cost_of_cover_path *
+                                              partitions[i].elements.size() -
+                                          partitions[j].cost_of_cover_path) *
+                                             partitions[j].elements.size();
         upperbound_cost /=
             (partitions[i].elements.size() + partitions[j].elements.size());
       }
@@ -133,10 +135,10 @@ inline bool merge_df_bb_search(
 
       logger.total_num_expanded_node += partition_i_j.num_expanded_nodes;
 
-      // if (!partition_i_j.is_satisfy_el()) {
-      //   logger.skipped_count++;
-      //  continue;
-      // }
+      if (partition_i_j.cover_path.size() == 0) {
+        logger.skipped_count++;
+        continue;
+      }
 
       std::vector<Partition> next_partitions;
       if (!partition_i_j.is_satisfying) {
