@@ -3,6 +3,7 @@
 #include "asap.h"
 #include "covering_search.h"
 #include "dfbbpartition.h"
+#include "greedypartition.h"
 #include "heuristic.h"
 #include "visibility.h"
 #include <iostream>
@@ -13,6 +14,7 @@
 int k = 2;
 int el = 0;
 int verbose = 1000;
+std::string partition_type = "merge";
 std::string vf_type = "identity";
 std::string hf_type = "blind";
 std::string j_order_type = "random";
@@ -21,7 +23,7 @@ bool use_upperbound_cost = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:h:j:b:cu")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:cu")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
@@ -31,6 +33,9 @@ void parse_args(int argc, char *argv[]) {
       break;
     case 'v':
       vf_type = std::string(optarg);
+      break;
+    case 'p':
+      partition_type = std::string(optarg);
       break;
     case 'h':
       hf_type = std::string(optarg);
@@ -107,10 +112,19 @@ int main(int argc, char *argv[]) {
   std::cout << "Setup Completed\n";
   std::cout << "Optimal Partition Search Started\n";
 
-  std::vector<Partition> partitions =
-      merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
-                  &asaplookup, complete_search, verbose, use_upperbound_cost);
+  std::vector<Partition> partitions;
 
+  if (partition_type == "merge") {
+    partitions =
+        merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
+                    &asaplookup, complete_search, verbose, use_upperbound_cost);
+  } else if (partition_type == "greedy") {
+    partitions = greedypartition(k, el, j_order_type, source, goal, hf, vf,
+                                 &graph, &asaplookup, complete_search, verbose,
+                                 use_upperbound_cost);
+  } else {
+    throw std::invalid_argument("Partition type should be merge/greedy");
+  }
   std::cout << "Optimal Partition Search Completed\n";
 
   if (partitions.size() == 0) {
