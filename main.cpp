@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
     hf = new BlindHeuristic(vf, asaplookup, goal);
   } else if (hf_type == "tunnel") {
     hf = new TunnelHeuristic(vf, asaplookup, goal);
-  } else if (hf_type == "tunnelidentity") {
-    hf = new TunnelIdentity(vf, asaplookup, goal, el);
+  } else if (hf_type == "tunnel+") {
+    hf = new TunnelPlusHeuristic(vf, asaplookup, goal, el);
   } else if (hf_type == "mst") {
     hf = new MSTHeuristic(vf, asaplookup, goal);
   } else {
