@@ -14,7 +14,7 @@
 
 int k = 2;
 int el = 0;
-int verbose = 1000;
+float verbose = 1000;
 std::string partition_type = "merge";
 std::string vf_type = "identity";
 std::string hf_type = "blind";
@@ -45,7 +45,7 @@ void parse_args(int argc, char *argv[]) {
       j_order_type = std::string(optarg);
       break;
     case 'b':
-      verbose = atoi(optarg);
+      verbose = atof(optarg);
       break;
     case 'c':
       complete_search = true;
@@ -117,8 +117,6 @@ int main(int argc, char *argv[]) {
 
   std::vector<Partition> partitions;
 
-  std::chrono::system_clock::time_point start, end;
-  start = std::chrono::system_clock::now();
   if (partition_type == "merge") {
     partitions =
         merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
@@ -130,11 +128,6 @@ int main(int argc, char *argv[]) {
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
-  end = std::chrono::system_clock::now();
-  float elapsed =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-          .count();
-  std::cout << "Optimal Partition Search Completed " << elapsed << "[ms] \n";
 
   if (partitions.size() == 0) {
     std::cout << " No Satisfying Partition Found\n";

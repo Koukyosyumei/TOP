@@ -2,6 +2,7 @@
 #include "covering_search.h"
 #include "utils.h"
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <iostream>
 #include <numeric>
@@ -203,6 +204,11 @@ inline size_t hash_values_from_diff(size_t cur_hash_val, Partition &p_i,
 }
 
 struct Logger {
+  std::chrono::system_clock::time_point start_time, end_time;
+  float verbose_interval;
+  long long sum_card = 0;
+  float avg_path_cost = 0;
+  float num_print_called = 1;
   long long cum_count = 0;
   long long num_evaluated_partitions_till_first_solution = 0;
   long long num_expanded_node_till_first_solution = 0;
@@ -211,11 +217,24 @@ struct Logger {
   long long duplicated_count = 0;
   long long valid_count = 0;
   long long not_promissing_count = 0;
-  void print() {
-    std::cout << cum_count << " Partitions Evaluated (" << valid_count
-              << " Valid Partitions) (" << skipped_count << " Skipped) ("
-              << duplicated_count << " Duplicated) (" << total_num_expanded_node
-              << " Node Expanded)\n";
+
+  Logger(float verbose_interval_)
+      : start_time(std::chrono::system_clock::now()),
+        verbose_interval(verbose_interval_) {}
+
+  void print(bool force = false) {
+    end_time = std::chrono::system_clock::now();
+    float elasped = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        end_time - start_time)
+                        .count();
+    if (force || elasped >= num_print_called * verbose_interval) {
+      std::cout << (num_print_called * verbose_interval)
+                << " [ms]: " << cum_count << " Partitions Evaluated ("
+                << valid_count << " Valid Partitions) (" << skipped_count
+                << " Skipped) (" << duplicated_count << " Duplicated) ("
+                << total_num_expanded_node << " Node Expanded)\n";
+      num_print_called++;
+    }
   }
   void summary() {
     std::cout << "Performance Summary of DFBB:\n";
@@ -235,6 +254,14 @@ struct Logger {
               << num_expanded_node_till_first_solution << "\n";
     std::cout << "- Number of Duplicated Partitions in Total: "
               << duplicated_count << "\n";
+    std::cout << "- Number of Anonymized Paths: " << sum_card << "\n";
+    std::cout << "- Average Cost of Anonymized Paths: " << avg_path_cost
+              << "\n";
+    std::cout << "- Time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end_time - start_time)
+                     .count()
+              << " [ms]\n";
   }
 };
 
@@ -242,8 +269,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
                         std::unordered_set<size_t> &checked_partitions,
                         size_t hash_val, Logger &logger, int &best_sumcard,
                         int &best_sumcost, int k, int el, bool complete_search,
-                        int log_count, bool &valid_already_found,
-                        bool use_upperbound_cost,
+                        bool &valid_already_found, bool use_upperbound_cost,
                         bool use_duplication_detection = true) {
   if (use_duplication_detection &&
       checked_partitions.find(hash_values_from_diff(hash_val, p_i, p_j)) !=
