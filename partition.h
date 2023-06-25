@@ -228,11 +228,12 @@ struct Logger {
                         end_time - start_time)
                         .count();
     if (force || elasped >= num_print_called * verbose_interval) {
-      std::cout << (num_print_called * verbose_interval)
-                << " [ms]: " << cum_count << " Partitions Evaluated ("
-                << valid_count << " Valid Partitions) (" << skipped_count
-                << " Skipped) (" << duplicated_count << " Duplicated) ("
-                << total_num_expanded_node << " Node Expanded)\n";
+      std::cout << (num_print_called * verbose_interval) << " [ms], "
+                << sum_card << " Anonymized Paths, " << avg_path_cost
+                << " (Aveage Cost), " << cum_count << " Partitions Evaluated, "
+                << valid_count << " Valid Partitions, " << skipped_count
+                << " Skipped, " << duplicated_count << " Duplicated, "
+                << total_num_expanded_node << " Node Expanded\n";
       num_print_called++;
     }
   }
