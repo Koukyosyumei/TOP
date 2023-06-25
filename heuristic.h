@@ -25,9 +25,9 @@ struct BlindHeuristic : public HeuristicFuncBase {
   int calculate_hval(Node &node) { return 0; }
 };
 
-struct SingletonHeuristic : public HeuristicFuncBase {
-  SingletonHeuristic(VisibilityFunc *vf_,
-                     std::vector<std::vector<int>> &asaplookup_, int goal_)
+struct TunnelHeuristic : public HeuristicFuncBase {
+  TunnelHeuristic(VisibilityFunc *vf_,
+                  std::vector<std::vector<int>> &asaplookup_, int goal_)
       : HeuristicFuncBase(vf_, asaplookup_, goal_) {}
 
   int calculate_hval(Node &node) {
@@ -49,10 +49,29 @@ struct SingletonHeuristic : public HeuristicFuncBase {
 
     int h_to_goal = INT_MAX;
     for (int p : node.unseen) {
-      h_to_goal = std::min(h_to_goal, asaplookup[p][goal]);
+      avp = vf->get_all_watchers(p);
+      for (int q : avp) {
+        h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
+      }
     }
 
     return h_to_unseen + h_to_goal;
+  }
+};
+
+struct TunnelIdentity : public HeuristicFuncBase {
+  TunnelHeuristic tunnel_hf;
+  int el;
+  TunnelIdentity(VisibilityFunc *vf_,
+                 std::vector<std::vector<int>> &asaplookup_, int goal_, int el_)
+      : HeuristicFuncBase(vf_, asaplookup_, goal_),
+        tunnel_hf(vf_, asaplookup_, goal_), el(el_) {}
+
+  int calculate_hval(Node &node) {
+    if (node.unseen.size() <= 1) {
+      return tunnel_hf.calculate_hval(node);
+    }
+    return tunnel_hf.calculate_hval(node) + el * ((int)node.unseen.size() - 1);
   }
 };
 
@@ -95,9 +114,13 @@ struct MSTHeuristic : public HeuristicFuncBase {
     }
     h_mst = mst_cost(adj_matrix);
 
+    std::vector<int> avp;
     int h_to_goal = INT_MAX;
     for (int p : node.unseen) {
-      h_to_goal = std::min(h_to_goal, asaplookup[p][goal]);
+      avp = vf->get_all_watchers(p);
+      for (int q : avp) {
+        h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
+      }
     }
     return h_mst + h_to_goal;
   }

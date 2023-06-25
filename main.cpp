@@ -101,13 +101,15 @@ int main(int argc, char *argv[]) {
   HeuristicFuncBase *hf;
   if (hf_type == "blind") {
     hf = new BlindHeuristic(vf, asaplookup, goal);
-  } else if (hf_type == "singleton") {
-    hf = new SingletonHeuristic(vf, asaplookup, goal);
+  } else if (hf_type == "tunnel") {
+    hf = new TunnelHeuristic(vf, asaplookup, goal);
+  } else if (hf_type == "tunnelidentity") {
+    hf = new TunnelIdentity(vf, asaplookup, goal, el);
   } else if (hf_type == "mst") {
     hf = new MSTHeuristic(vf, asaplookup, goal);
   } else {
     throw std::invalid_argument(
-        "Heuristic function should be blind/singleton/mst.");
+        "Heuristic function should be blind/tunnel/tunelidentity/mst.");
   }
 
   std::cout << "Setup Completed\n";

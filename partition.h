@@ -258,9 +258,11 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
   }
   int upperbound_cost = INT_MAX;
   if (valid_already_found && use_upperbound_cost) {
-    upperbound_cost = best_sumcost - (sumcost - p_i.cost_of_cover_path -
-                                      p_j.cost_of_cover_path);
-    upperbound_cost /= (p_i.elements.size() + p_j.elements.size());
+    upperbound_cost =
+        best_sumcost -
+        (sumcost - (int)p_i.elements.size() * p_i.cost_of_cover_path -
+         (int)p_j.elements.size() * p_j.cost_of_cover_path);
+    upperbound_cost /= ((int)p_i.elements.size() + (int)p_j.elements.size());
     if (std::max(p_i.h_to_unseen, p_j.h_to_unseen) +
             std::min(p_i.h_to_goal, p_j.h_to_goal) >
         upperbound_cost) {

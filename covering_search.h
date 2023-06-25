@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "heuristic.h"
+#include "utils.h"
 #include "visibility.h"
 
 inline Node make_root_node(VisibilityFunc *vf, int location_id,
@@ -66,10 +67,10 @@ search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
   Node start = make_root_node(vf, start_loc, target_elements);
   std::vector<Node> nodes = {start};
   int h = hfunc->calculate_hval(nodes[nodes.size() - 1]);
-  if (h < upperbound_cost) {
-    queue.push(std::make_tuple(-1 * (h + nodes[nodes.size() - 1].g), -1 * h,
-                               nodes.size() - 1));
-  }
+  // if (h <= upperbound_cost) {
+  queue.push(std::make_tuple(-1 * (h + nodes[nodes.size() - 1].g), -1 * h,
+                             nodes.size() - 1));
+  // }
   std::unordered_map<size_t, int> state_cost = {{nodes[0].hash_value, 0}};
   std::tuple<int, int, int> front_status;
   std::vector<Node> children;
@@ -89,10 +90,6 @@ search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
       if (nodes[node_idx].location == goal_loc &&
           nodes[node_idx].unseen.size() == 0) {
         return std::make_pair(expansions, extract_solution(node_idx, nodes));
-      }
-
-      if (nodes[node_idx].g > upperbound_cost) {
-        continue;
       }
 
       children = make_children_nodes(vf, nodes[node_idx], node_idx);

@@ -122,14 +122,16 @@ inline bool merge_df_bb_search(
     for (int j : j_order) {
       int upperbound_cost = INT_MAX;
       if (valid_already_found && use_upperbound_cost) {
-        upperbound_cost = best_sumcost - (sumcost -
-                                          partitions[i].cost_of_cover_path *
-                                              partitions[i].elements.size() -
-                                          partitions[j].cost_of_cover_path) *
-                                             partitions[j].elements.size();
-        upperbound_cost /=
-            (partitions[i].elements.size() + partitions[j].elements.size());
+        upperbound_cost =
+            best_sumcost - (sumcost -
+                            (partitions[i].cost_of_cover_path *
+                             (int)partitions[i].elements.size()) -
+                            (partitions[j].cost_of_cover_path) *
+                                (int)partitions[j].elements.size());
+        upperbound_cost /= ((int)partitions[i].elements.size() +
+                            (int)partitions[j].elements.size());
       }
+      upperbound_cost = INT_MAX;
       Partition partition_i_j =
           partitions[i].merge(partitions[j], upperbound_cost);
 
