@@ -26,8 +26,9 @@ if __name__ == "__main__":
 
     for i in range(parsed_args.num_outputs):
         source_goal = random.sample(list(range((N))), 2)
-        with open(os.path.join(parsed_args.output_dir,
-                               base_name + "-" + str(i) + ".in"), 'w') as file:
+        with open(
+            os.path.join(parsed_args.output_dir, base_name + "-" + str(i) + ".in"), "w"
+        ) as file:
             for line in lines[:-1]:
                 file.write(line)
             file.write(f"{source_goal[0]} {source_goal[1]}")

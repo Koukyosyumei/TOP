@@ -10,10 +10,13 @@ inline bool greedypartition_search(
     std::vector<Partition> subsets, std::vector<Partition> unassigned,
     std::unordered_set<size_t> &checked_partitions, Logger &logger,
     int &best_sumcard, int &best_sumcost, int k, int el, bool complete_search,
-    int log_count, bool &valid_already_found, bool use_upperbound_cost) {
+    bool &valid_already_found, bool use_upperbound_cost) {
 
   size_t hash_val = hash_values_of_partitions(subsets);
   checked_partitions.insert(hash_val);
+  if (logger.print()) {
+    return true;
+  }
 
   bool valid_paritions = true;
   int sumcost = 0;
@@ -31,11 +34,17 @@ inline bool greedypartition_search(
 
   if (unassigned.size() == 0) {
 
-    logger.cum_count++;
-
-    if (logger.cum_count != 0 && logger.cum_count % log_count == 0) {
-      logger.print();
+    /*
+    for (const Partition &p : subsets) {
+      for (int i : p.elements) {
+        std::cout << i << " ";
+      }
+      std::cout << "|";
     }
+    std::cout << std::endl;
+    */
+
+    logger.cum_count++;
 
     if (satisfying_sumcard > best_sumcard ||
         (satisfying_sumcard == best_sumcard &&
@@ -63,15 +72,17 @@ inline bool greedypartition_search(
     Partition picked = unassigned[n];
     unassigned.erase(unassigned.begin() + n);
 
+    /*
     subsets.push_back(picked);
     bool flag = greedypartition_search(
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
-        logger, best_sumcard, best_sumcost, k, el, complete_search, log_count,
+        logger, best_sumcard, best_sumcost, k, el, complete_search,
         valid_already_found, use_upperbound_cost);
     if (flag) {
       return true;
     }
     subsets.erase(subsets.begin() + subsets.size());
+    */
 
     std::vector<int> idxs(subsets.size());
     std::iota(idxs.begin(), idxs.end(), 0);
@@ -83,8 +94,8 @@ inline bool greedypartition_search(
 
       if (is_prunable(subsets[i], picked, sumcost, checked_partitions, hash_val,
                       logger, best_sumcard, best_sumcost, k, el,
-                      complete_search, log_count, valid_already_found,
-                      use_upperbound_cost, false)) {
+                      complete_search, valid_already_found, use_upperbound_cost,
+                      false)) {
         continue;
       }
 
@@ -99,22 +110,21 @@ inline bool greedypartition_search(
       bool flag = greedypartition_search(
           j_order_type, best_partitions, subsets, unassigned,
           checked_partitions, logger, best_sumcard, best_sumcost, k, el,
-          complete_search, log_count, valid_already_found, use_upperbound_cost);
+          complete_search, valid_already_found, use_upperbound_cost);
       if (flag) {
         return true;
       }
       subsets[i] = p_tmp;
     }
 
-    /*
     subsets.push_back(picked);
     bool flag = greedypartition_search(
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
-        logger, best_sumcard, best_sumcost, k, el, complete_search, log_count,
+        logger, best_sumcard, best_sumcost, k, el, complete_search,
         valid_already_found, use_upperbound_cost);
     if (flag) {
       return true;
-    }*/
+    }
   }
 
   return false;
@@ -125,12 +135,12 @@ greedypartition(int k, int el, std::string j_order_type, int source, int goal,
                 HeuristicFuncBase *hfunc, VisibilityFunc *vf,
                 std::vector<std::vector<int>> *graph,
                 std::vector<std::vector<int>> *asaplookup, bool complete_search,
-                int verbose, bool use_upperbound_cost) {
+                float verbose, float timeout, bool use_upperbound_cost) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
   std::vector<Partition> subsets;
   std::vector<Partition> unassigned;
-  Logger logger;
+  Logger logger(verbose, timeout);
 
   std::vector<int> visible_points_of_i;
   for (int i = 0; i < N; i++) {
@@ -164,7 +174,7 @@ greedypartition(int k, int el, std::string j_order_type, int source, int goal,
   std::unordered_set<size_t> checked_partitions;
   greedypartition_search(j_order_type, best_partitions, subsets, unassigned,
                          checked_partitions, logger, best_sumcard, best_sumcost,
-                         k, el, complete_search, verbose, valid_found,
+                         k, el, complete_search, valid_found,
                          use_upperbound_cost);
   logger.summary();
   std::cout << "- Number of Anonymized Paths: " << best_sumcard << "\n";

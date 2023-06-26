@@ -1,11 +1,12 @@
 #include <unistd.h>
 
-#include "asap.h"
-#include "covering_search.h"
-#include "dfbbpartition.h"
-#include "greedypartition.h"
-#include "heuristic.h"
-#include "visibility.h"
+#include "klta/asap.h"
+#include "klta/covering_search.h"
+#include "klta/dfbbpartition.h"
+#include "klta/greedypartition.h"
+#include "klta/heuristic.h"
+#include "klta/utils.h"
+#include "klta/visibility.h"
 #include <chrono>
 #include <iostream>
 #include <stdexcept>
@@ -14,7 +15,8 @@
 
 int k = 2;
 int el = 0;
-int verbose = 1000;
+float verbose = 1000;
+float timeout = 30000;
 std::string partition_type = "merge";
 std::string vf_type = "identity";
 std::string hf_type = "blind";
@@ -24,7 +26,7 @@ bool use_upperbound_cost = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:cu")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:t:cu")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
@@ -45,7 +47,10 @@ void parse_args(int argc, char *argv[]) {
       j_order_type = std::string(optarg);
       break;
     case 'b':
-      verbose = atoi(optarg);
+      verbose = atof(optarg);
+      break;
+    case 't':
+      timeout = atof(optarg);
       break;
     case 'c':
       complete_search = true;
@@ -71,6 +76,7 @@ int main(int argc, char *argv[]) {
   std::cout << ": j=" << j_order_type << "\n";
   std::cout << ": c=" << complete_search << "\n";
   std::cout << ": u=" << use_upperbound_cost << "\n";
+  std::cout << ": p=" << partition_type << "\n";
 
   int N, E, source, goal, a, b;
   float c;
@@ -101,13 +107,15 @@ int main(int argc, char *argv[]) {
   HeuristicFuncBase *hf;
   if (hf_type == "blind") {
     hf = new BlindHeuristic(vf, asaplookup, goal);
-  } else if (hf_type == "singleton") {
-    hf = new SingletonHeuristic(vf, asaplookup, goal);
+  } else if (hf_type == "tunnel") {
+    hf = new TunnelHeuristic(vf, asaplookup, goal);
+  } else if (hf_type == "tunnel+") {
+    hf = new TunnelPlusHeuristic(vf, asaplookup, goal, el);
   } else if (hf_type == "mst") {
     hf = new MSTHeuristic(vf, asaplookup, goal);
   } else {
     throw std::invalid_argument(
-        "Heuristic function should be blind/singleton/mst.");
+        "Heuristic function should be blind/tunnel/tunelidentity/mst.");
   }
 
   std::cout << "Setup Completed\n";
@@ -115,24 +123,29 @@ int main(int argc, char *argv[]) {
 
   std::vector<Partition> partitions;
 
-  std::chrono::system_clock::time_point start, end;
-  start = std::chrono::system_clock::now();
   if (partition_type == "merge") {
-    partitions =
-        merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
-                    &asaplookup, complete_search, verbose, use_upperbound_cost);
+    partitions = merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
+                             &asaplookup, complete_search, verbose, timeout,
+                             use_upperbound_cost);
   } else if (partition_type == "greedy") {
     partitions = greedypartition(k, el, j_order_type, source, goal, hf, vf,
                                  &graph, &asaplookup, complete_search, verbose,
-                                 use_upperbound_cost);
+                                 timeout, use_upperbound_cost);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
-  end = std::chrono::system_clock::now();
-  float elapsed =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-          .count();
-  std::cout << "Optimal Partition Search Completed " << elapsed << "[ms] \n";
+
+  float sum_dist_tmp = 0;
+  float sum_card_tmp = 0;
+  for (int i = 0; i < N; i++) {
+    if ((i != source) && (i != goal) && (asaplookup[source][i] != INT_MAX) &&
+        (asaplookup[i][goal] != INT_MAX)) {
+      sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
+      sum_card_tmp++;
+    }
+  }
+  std::cout << "- Lowerbound Cost of Anonnymized Paths: "
+            << sum_dist_tmp / sum_card_tmp << "\n";
 
   if (partitions.size() == 0) {
     std::cout << " No Satisfying Partition Found\n";

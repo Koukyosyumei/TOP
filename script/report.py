@@ -5,9 +5,13 @@ import re
 
 
 def add_args(parser):
-    parser.add_argument("-d", "--dir", default="output", type=str)
-    parser.add_argument("-o", "--output_file_path",
-                        default="report.csv", type=str)
+    parser.add_argument("-d", "--dir", default="output/*", type=str)
+    parser.add_argument(
+        "-o", "--output_file_path", default="report_summary.csv", type=str
+    )
+    parser.add_argument(
+        "-t", "--output_time_file_path", default="report_time.csv", type=str
+    )
     args = parser.parse_args()
     return args
 
@@ -17,14 +21,21 @@ if __name__ == "__main__":
     parsed_args = add_args(parser)
 
     rows = []
+    df_times_logs = []
     for path in glob.glob(parsed_args.dir):
         matches = re.findall(r"=(.*?)_", path)
-        n = matches[0]
-        p = matches[1]
-        s = matches[2]
+        n = -1
+        p = -1
+        s = -1
+        if len(matches) >= 3:
+            n = matches[0]
+            p = matches[1]
+            s = matches[2]
+
         with open(path, mode="r") as f:
             lines = f.readlines()
         lines = [lin.replace("\n", "") for lin in lines]
+
         k = lines[1].split("=")[1]
         el = lines[2].split("=")[1]
         v = lines[3].split("=")[1]
@@ -32,13 +43,33 @@ if __name__ == "__main__":
         j = lines[5].split("=")[1]
         c = lines[6].split("=")[1]
         u = lines[7].split("=")[1]
+        p = lines[8].split("=")[1]
 
+        times_log = []
         for i, lin in enumerate(lines):
+            if "[ms]" in lin:
+                infos = lin.split(", ")
+                parsed_infos = [float(i.split(" ")[0]) for i in infos]
+                times_log.append([path] + parsed_infos)
             if "Performance Summary of DFBB" in lin:
                 break
 
         if len(lines) == i + 1:
             continue
+
+        df_time_single = pd.DataFrame(times_log)
+        df_time_single.columns = [
+            "path",
+            "time",
+            "NumberOfAnonymizedPaths",
+            "AverageCost",
+            "NumberOfPartitions",
+            "NumberOfValidPartitions",
+            "NumberofSkipped",
+            "NumberOfDuplicated",
+            "NumberOfNodes",
+        ]
+        df_times_logs.append(df_time_single)
 
         num_evaluated_partitions = lines[i + 1].split(": ")[1]
         num_valid_partitions = lines[i + 2].split(": ")[1]
@@ -46,11 +77,15 @@ if __name__ == "__main__":
         num_expanded_nodes = lines[i + 4].split(": ")[1]
         num_evaluated_partitions_till_first = lines[i + 5].split(": ")[1]
         num_expanded_nodes_till_first = lines[i + 6].split(": ")[1]
-        num_anonymized_paths = lines[i + 7].split(": ")[1]
-        avg_cost_anonymized_paths = lines[i + 8].split(": ")[1]
+        num_duplicated_partitions = lines[i + 7].split(": ")[1]
+        num_anonymized_paths = lines[i + 8].split(": ")[1]
+        avg_cost_anonymized_paths = lines[i + 9].split(": ")[1]
+        total_time = lines[i + 10].split(": ")[1].split(" [ms]")[0]
+        lowerbound_cost = lines[i + 11].split(": ")[1]
 
         rows.append(
             [
+                path,
                 n,
                 p,
                 s,
@@ -61,6 +96,7 @@ if __name__ == "__main__":
                 j,
                 c,
                 u,
+                p,
                 num_evaluated_partitions,
                 num_valid_partitions,
                 num_skipped_partitions,
@@ -69,11 +105,15 @@ if __name__ == "__main__":
                 num_evaluated_partitions_till_first,
                 num_expanded_nodes_till_first,
                 avg_cost_anonymized_paths,
+                total_time,
+                lowerbound_cost,
+                num_duplicated_partitions
             ]
         )
 
     df = pd.DataFrame(rows)
-    columns = [
+    df.columns = [
+        "path",
         "num_nodes",
         "probability_of_edge",
         "seed",
@@ -84,6 +124,7 @@ if __name__ == "__main__":
         "order_of_j",
         "complete_search",
         "upperbound_pruning",
+        "partition_type",
         "num_evaluated_partitions",
         "num_valid_partitions",
         "num_skipped_partitions",
@@ -92,6 +133,11 @@ if __name__ == "__main__":
         "num_evaluated_partitions_till_first",
         "num_expanded_nodes_till_first",
         "avg_cost_anonymized_paths",
+        "total_time",
+        "lowebound_cost",
+        "num_duplicated_partitions"
     ]
-    df.columns = columns
     df.to_csv(parsed_args.output_file_path, index=False)
+
+    df_time = pd.concat(df_times_logs)
+    df_time.to_csv(parsed_args.output_time_file_path, index=False)
