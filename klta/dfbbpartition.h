@@ -38,9 +38,18 @@ orderofj(int i, std::string j_order_type, int sumcost,
       dist_from_i.push_back(partitions[i].dist(partitions[j]));
     }
 
-    // std::sort(j_order.begin(), j_order.end(), [&](size_t a, size_t b) {
-    //  return dist_from_i[a] < dist_from_i[b];
-    // });
+    std::vector<size_t> sorted_idx = argsort(dist_from_i);
+    std::vector<size_t> j_order_sorted;
+    for (size_t s : sorted_idx) {
+      j_order_sorted.push_back(j_order[s]);
+    }
+    j_order = j_order_sorted;
+  } else if (j_order_type == "pathmatch") {
+    dist_from_i.reserve(j_order.size());
+    for (size_t j : j_order) {
+      dist_from_i.push_back(partitions[i].pathmatch(partitions[j]));
+    }
+
     std::vector<size_t> sorted_idx = argsort(dist_from_i);
     std::vector<size_t> j_order_sorted;
     for (size_t s : sorted_idx) {
@@ -60,6 +69,17 @@ inline bool merge_df_bb_search(std::string j_order_type,
                                int &best_sumcost, int k, int el,
                                bool complete_search, bool &valid_already_found,
                                bool use_upperbound_cost) {
+
+  /*
+  for (const Partition &p : partitions) {
+    for (int i : p.elements) {
+      std::cout << i << " ";
+    }
+    std::cout << "|";
+  }
+  std::cout << std::endl;
+    */
+
   size_t hash_val = hash_values_of_partitions(partitions);
   checked_partitions.insert(hash_val);
   logger.cum_count++;

@@ -34,6 +34,16 @@ inline bool greedypartition_search(
 
   if (unassigned.size() == 0) {
 
+    /*
+    for (const Partition &p : subsets) {
+      for (int i : p.elements) {
+        std::cout << i << " ";
+      }
+      std::cout << "|";
+    }
+    std::cout << std::endl;
+    */
+
     logger.cum_count++;
 
     if (satisfying_sumcard > best_sumcard ||
@@ -62,6 +72,7 @@ inline bool greedypartition_search(
     Partition picked = unassigned[n];
     unassigned.erase(unassigned.begin() + n);
 
+    /*
     subsets.push_back(picked);
     bool flag = greedypartition_search(
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
@@ -71,6 +82,7 @@ inline bool greedypartition_search(
       return true;
     }
     subsets.erase(subsets.begin() + subsets.size());
+    */
 
     std::vector<int> idxs(subsets.size());
     std::iota(idxs.begin(), idxs.end(), 0);
@@ -105,15 +117,14 @@ inline bool greedypartition_search(
       subsets[i] = p_tmp;
     }
 
-    /*
     subsets.push_back(picked);
     bool flag = greedypartition_search(
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
-        logger, best_sumcard, best_sumcost, k, el, complete_search, log_count,
+        logger, best_sumcard, best_sumcost, k, el, complete_search,
         valid_already_found, use_upperbound_cost);
     if (flag) {
       return true;
-    }*/
+    }
   }
 
   return false;

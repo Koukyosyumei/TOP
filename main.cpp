@@ -5,6 +5,7 @@
 #include "klta/dfbbpartition.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
+#include "klta/utils.h"
 #include "klta/visibility.h"
 #include <chrono>
 #include <iostream>
@@ -133,6 +134,18 @@ int main(int argc, char *argv[]) {
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
+
+  float sum_dist_tmp = 0;
+  float sum_card_tmp = 0;
+  for (int i = 0; i < N; i++) {
+    if ((i != source) && (i != goal) && (asaplookup[source][i] != INT_MAX) &&
+        (asaplookup[i][goal] != INT_MAX)) {
+      sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
+      sum_card_tmp++;
+    }
+  }
+  std::cout << "- Lowerbound Cost of Anonnymized Paths: "
+            << sum_dist_tmp / sum_card_tmp << "\n";
 
   if (partitions.size() == 0) {
     std::cout << " No Satisfying Partition Found\n";

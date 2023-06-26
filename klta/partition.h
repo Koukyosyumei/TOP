@@ -154,14 +154,30 @@ struct Partition {
     return dist;
   }
 
-  int pathdist(const Partition &rhs) {
-    int dist = INT_MAX;
+  int pathmatch(const Partition &rhs) {
+    std::unordered_set<int> this_path_set, rhs_path_set;
     for (const Node &i : cover_path) {
-      for (const Node &j : rhs.cover_path) {
-        dist = std::min(dist, asaplookup->at(i.location)[j.location]);
+      this_path_set.emplace(i.location);
+    }
+    for (const Node &j : rhs.cover_path) {
+      rhs_path_set.emplace(j.location);
+    }
+
+    int mis_this = 0;
+    int mis_rhs = 0;
+    for (int i : elements) {
+      if (rhs_path_set.find(i) == rhs_path_set.end()) {
+        mis_this++;
       }
     }
-    return dist;
+    for (int j : rhs.elements) {
+      if (this_path_set.find(j) == this_path_set.end()) {
+        mis_rhs++;
+      }
+    }
+
+    // return std::min(mis_this, mis_rhs);
+    return mis_this + mis_rhs;
   }
 };
 

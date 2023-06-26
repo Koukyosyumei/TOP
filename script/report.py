@@ -32,7 +32,7 @@ if __name__ == "__main__":
         j = lines[5].split("=")[1]
         c = lines[6].split("=")[1]
         u = lines[7].split("=")[1]
-
+        p = lines[8].split("=")[1]
         for i, lin in enumerate(lines):
             if "Performance Summary of DFBB" in lin:
                 break
@@ -48,6 +48,8 @@ if __name__ == "__main__":
         num_expanded_nodes_till_first = lines[i + 6].split(": ")[1]
         num_anonymized_paths = lines[i + 7].split(": ")[1]
         avg_cost_anonymized_paths = lines[i + 8].split(": ")[1]
+        total_time = lines[i + 9].split(": ")[1]
+        lowerbound_cost = lines[i + 10].split(": ")[1]
 
         rows.append(
             [
@@ -61,6 +63,7 @@ if __name__ == "__main__":
                 j,
                 c,
                 u,
+                p,
                 num_evaluated_partitions,
                 num_valid_partitions,
                 num_skipped_partitions,
@@ -69,6 +72,8 @@ if __name__ == "__main__":
                 num_evaluated_partitions_till_first,
                 num_expanded_nodes_till_first,
                 avg_cost_anonymized_paths,
+                total_time,
+                lowerbound_cost
             ]
         )
 
@@ -84,6 +89,7 @@ if __name__ == "__main__":
         "order_of_j",
         "complete_search",
         "upperbound_pruning",
+        "partition_type",
         "num_evaluated_partitions",
         "num_valid_partitions",
         "num_skipped_partitions",
@@ -92,6 +98,8 @@ if __name__ == "__main__":
         "num_evaluated_partitions_till_first",
         "num_expanded_nodes_till_first",
         "avg_cost_anonymized_paths",
+        "total_time",
+        "lowebound_cost"
     ]
     df.columns = columns
     df.to_csv(parsed_args.output_file_path, index=False)
