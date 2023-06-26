@@ -1,6 +1,7 @@
 data/*.in*
 data/*.txt*
 output/*.out*
+output/*.csv
 .ipynb_checkpoints/
 __pycache__/
 cache/
