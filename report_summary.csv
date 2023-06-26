@@ -1,0 +1,3 @@
+path,num_nodes,probability_of_edge,seed,k,el,visibility_func,heuristic_func,order_of_j,complete_search,upperbound_pruning,partition_type,num_evaluated_partitions,num_valid_partitions,num_skipped_partitions,num_expanded_nodes,num_anonymized_paths,num_evaluated_partitions_till_first,num_expanded_nodes_till_first,avg_cost_anonymized_paths,total_time,lowebound_cost,num_duplicated_partitions
+output/map-1.out,-1,merge,-1,2,0,identity,tunnel,nearest,1,1,merge,4544,4255,1067,592692,360,240,27197,8274.38,10001,7832.47,0
+output/map-2.out,-1,merge,-1,2,0,identity,tunnel,nearest,1,1,merge,3518,3126,3410,1271544,360,242,26087,7242.88,10000,6775.92,54
