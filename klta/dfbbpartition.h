@@ -63,7 +63,9 @@ inline bool merge_df_bb_search(std::string j_order_type,
   size_t hash_val = hash_values_of_partitions(partitions);
   checked_partitions.insert(hash_val);
   logger.cum_count++;
-  logger.print();
+  if (logger.print()) {
+    return true;
+  }
 
   bool valid_paritions = true;
   int sumcost = 0;
@@ -162,11 +164,11 @@ merge_df_bb(int k, int el, std::string j_order_type, int source, int goal,
             HeuristicFuncBase *hfunc, VisibilityFunc *vf,
             std::vector<std::vector<int>> *graph,
             std::vector<std::vector<int>> *asaplookup, bool complete_search,
-            float verbose, bool use_upperbound_cost) {
+            float verbose, float timeout, bool use_upperbound_cost) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
   std::vector<Partition> partitions;
-  Logger logger(verbose);
+  Logger logger(verbose, timeout);
 
   std::vector<int> visible_points_of_i;
   for (int i = 0; i < N; i++) {

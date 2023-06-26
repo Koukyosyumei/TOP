@@ -205,7 +205,7 @@ inline size_t hash_values_from_diff(size_t cur_hash_val, Partition &p_i,
 
 struct Logger {
   std::chrono::system_clock::time_point start_time, end_time;
-  float verbose_interval;
+  float verbose_interval, timeout;
   long long sum_card = 0;
   float avg_path_cost = 0;
   float num_print_called = 1;
@@ -218,11 +218,11 @@ struct Logger {
   long long valid_count = 0;
   long long not_promissing_count = 0;
 
-  Logger(float verbose_interval_)
+  Logger(float verbose_interval_, float timeout_)
       : start_time(std::chrono::system_clock::now()),
-        verbose_interval(verbose_interval_) {}
+        verbose_interval(verbose_interval_), timeout(timeout_) {}
 
-  void print(bool force = false) {
+  bool print(bool force = false) {
     end_time = std::chrono::system_clock::now();
     float elasped = std::chrono::duration_cast<std::chrono::milliseconds>(
                         end_time - start_time)
@@ -236,6 +236,8 @@ struct Logger {
                 << total_num_expanded_node << " Node Expanded\n";
       num_print_called++;
     }
+
+    return elasped >= timeout;
   }
   void summary() {
     std::cout << "Performance Summary of DFBB:\n";

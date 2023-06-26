@@ -1,11 +1,11 @@
 #include <unistd.h>
 
-#include "asap.h"
-#include "covering_search.h"
-#include "dfbbpartition.h"
-#include "greedypartition.h"
-#include "heuristic.h"
-#include "visibility.h"
+#include "klta/asap.h"
+#include "klta/covering_search.h"
+#include "klta/dfbbpartition.h"
+#include "klta/greedypartition.h"
+#include "klta/heuristic.h"
+#include "klta/visibility.h"
 #include <chrono>
 #include <iostream>
 #include <stdexcept>
@@ -15,6 +15,7 @@
 int k = 2;
 int el = 0;
 float verbose = 1000;
+float timeout = 30000;
 std::string partition_type = "merge";
 std::string vf_type = "identity";
 std::string hf_type = "blind";
@@ -24,7 +25,7 @@ bool use_upperbound_cost = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:cu")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:t:cu")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
@@ -46,6 +47,9 @@ void parse_args(int argc, char *argv[]) {
       break;
     case 'b':
       verbose = atof(optarg);
+      break;
+    case 't':
+      timeout = atof(optarg);
       break;
     case 'c':
       complete_search = true;
@@ -71,6 +75,7 @@ int main(int argc, char *argv[]) {
   std::cout << ": j=" << j_order_type << "\n";
   std::cout << ": c=" << complete_search << "\n";
   std::cout << ": u=" << use_upperbound_cost << "\n";
+  std::cout << ": p=" << partition_type << "\n";
 
   int N, E, source, goal, a, b;
   float c;
@@ -118,13 +123,13 @@ int main(int argc, char *argv[]) {
   std::vector<Partition> partitions;
 
   if (partition_type == "merge") {
-    partitions =
-        merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
-                    &asaplookup, complete_search, verbose, use_upperbound_cost);
+    partitions = merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
+                             &asaplookup, complete_search, verbose, timeout,
+                             use_upperbound_cost);
   } else if (partition_type == "greedy") {
     partitions = greedypartition(k, el, j_order_type, source, goal, hf, vf,
                                  &graph, &asaplookup, complete_search, verbose,
-                                 use_upperbound_cost);
+                                 timeout, use_upperbound_cost);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
