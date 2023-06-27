@@ -124,13 +124,13 @@ int main(int argc, char *argv[]) {
   std::vector<Partition> partitions;
 
   if (partition_type == "merge") {
-    partitions = merge_df_bb(k, el, j_order_type, source, goal, hf, vf, &graph,
-                             &asaplookup, complete_search, verbose, timeout,
-                             use_upperbound_cost);
+    partitions = merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf,
+                             &graph, &asaplookup, complete_search, verbose,
+                             timeout, use_upperbound_cost);
   } else if (partition_type == "greedy") {
-    partitions = greedypartition(k, el, j_order_type, source, goal, hf, vf,
-                                 &graph, &asaplookup, complete_search, verbose,
-                                 timeout, use_upperbound_cost);
+    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
+                                 vf, &graph, &asaplookup, complete_search,
+                                 verbose, timeout, use_upperbound_cost);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }

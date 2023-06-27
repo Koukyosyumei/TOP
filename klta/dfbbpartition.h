@@ -14,9 +14,9 @@ inline std::vector<size_t>
 orderofj(int i, std::string j_order_type, int sumcost,
          std::vector<Partition> &partitions,
          std::unordered_set<size_t> &checked_partitions, size_t hash_val,
-         Logger &logger, int &best_sumcard, int &best_sumcost, int k, int el,
-         bool complete_search, bool &valid_already_found,
-         bool use_upperbound_cost) {
+         Logger &logger, int &best_sumcard, int &best_sumcost,
+         std::string hf_type, int k, int el, bool complete_search,
+         bool &valid_already_found, bool use_upperbound_cost) {
   std::vector<size_t> j_order;
 
   int partitions_num = partitions.size();
@@ -24,8 +24,8 @@ orderofj(int i, std::string j_order_type, int sumcost,
   for (int j = i + 1; j < partitions_num; j++) {
 
     if (!is_prunable(partitions[i], partitions[j], sumcost, checked_partitions,
-                     hash_val, logger, best_sumcard, best_sumcost, k, el,
-                     complete_search, valid_already_found,
+                     hash_val, logger, best_sumcard, best_sumcost, hf_type, k,
+                     el, complete_search, valid_already_found,
                      use_upperbound_cost)) {
       j_order.push_back(j);
     }
@@ -61,14 +61,12 @@ orderofj(int i, std::string j_order_type, int sumcost,
   return j_order;
 }
 
-inline bool merge_df_bb_search(std::string j_order_type,
-                               std::vector<Partition> &best_partitions,
-                               std::vector<Partition> &partitions,
-                               std::unordered_set<size_t> &checked_partitions,
-                               Logger &logger, int &best_sumcard,
-                               int &best_sumcost, int k, int el,
-                               bool complete_search, bool &valid_already_found,
-                               bool use_upperbound_cost) {
+inline bool merge_df_bb_search(
+    std::string j_order_type, std::vector<Partition> &best_partitions,
+    std::vector<Partition> &partitions,
+    std::unordered_set<size_t> &checked_partitions, Logger &logger,
+    int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
+    bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
 
   /*
   for (const Partition &p : partitions) {
@@ -140,7 +138,7 @@ inline bool merge_df_bb_search(std::string j_order_type,
 
     std::vector<size_t> j_order =
         orderofj(i, j_order_type, sumcost, partitions, checked_partitions,
-                 hash_val, logger, best_sumcard, best_sumcost, k, el,
+                 hash_val, logger, best_sumcard, best_sumcost, hf_type, k, el,
                  complete_search, valid_already_found, use_upperbound_cost);
 
     for (int j : j_order) {
@@ -168,7 +166,7 @@ inline bool merge_df_bb_search(std::string j_order_type,
 
       bool flag = merge_df_bb_search(
           j_order_type, best_partitions, next_partitions, checked_partitions,
-          logger, best_sumcard, best_sumcost, k, el, complete_search,
+          logger, best_sumcard, best_sumcost, hf_type, k, el, complete_search,
           valid_already_found, use_upperbound_cost);
       if (flag) {
         return true;
@@ -180,8 +178,8 @@ inline bool merge_df_bb_search(std::string j_order_type,
 }
 
 inline std::vector<Partition>
-merge_df_bb(int k, int el, std::string j_order_type, int source, int goal,
-            HeuristicFuncBase *hfunc, VisibilityFunc *vf,
+merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
+            int source, int goal, HeuristicFuncBase *hfunc, VisibilityFunc *vf,
             std::vector<std::vector<int>> *graph,
             std::vector<std::vector<int>> *asaplookup, bool complete_search,
             float verbose, float timeout, bool use_upperbound_cost) {
@@ -221,8 +219,9 @@ merge_df_bb(int k, int el, std::string j_order_type, int source, int goal,
   bool valid_found = false;
   std::unordered_set<size_t> checked_partitions;
   merge_df_bb_search(j_order_type, best_partitions, partitions,
-                     checked_partitions, logger, best_sumcard, best_sumcost, k,
-                     el, complete_search, valid_found, use_upperbound_cost);
+                     checked_partitions, logger, best_sumcard, best_sumcost,
+                     hf_type, k, el, complete_search, valid_found,
+                     use_upperbound_cost);
   logger.summary();
   return best_partitions;
 }
