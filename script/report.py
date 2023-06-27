@@ -36,6 +36,9 @@ if __name__ == "__main__":
             lines = f.readlines()
         lines = [lin.replace("\n", "") for lin in lines]
 
+        if len(lines) < 10:
+            continue
+
         k = lines[1].split("=")[1]
         el = lines[2].split("=")[1]
         v = lines[3].split("=")[1]
@@ -107,7 +110,7 @@ if __name__ == "__main__":
                 avg_cost_anonymized_paths,
                 total_time,
                 lowerbound_cost,
-                num_duplicated_partitions
+                num_duplicated_partitions,
             ]
         )
 
@@ -135,7 +138,7 @@ if __name__ == "__main__":
         "avg_cost_anonymized_paths",
         "total_time",
         "lowebound_cost",
-        "num_duplicated_partitions"
+        "num_duplicated_partitions",
     ]
     df.to_csv(parsed_args.output_file_path, index=False)
 
