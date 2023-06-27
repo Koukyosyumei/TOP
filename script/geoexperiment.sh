@@ -11,7 +11,7 @@ for k in 2 3 5
     for seed in {0..9}
      do
      FILE_NAME="${k}-${el}-${h}-${j}_n=${368}_e=${851}_s=${seed}_"
-     ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t 10000 < data/map.in-${seed}.in > output/${FILE_NAME}k${k}.out
+     ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t 10000 -c -u < data/map.in-${seed}.in > output/${FILE_NAME}k${k}.out
     done
     echo ${k} ${el} ${h} ${j} & wait
    done

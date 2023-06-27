@@ -23,7 +23,8 @@ struct Partition {
   int cost_of_cover_path;
   bool is_satisfying = true;
   bool is_cover_path_searched = false;
-  int h_to_unseen = 0;
+  int h_to_unseen_min = INT_MAX;
+  int h_to_unseen_max = 0;
   int h_to_goal = INT_MAX;
 
   Partition(){};
@@ -47,12 +48,14 @@ struct Partition {
 
   void calculate_singleton_h_value() {
     if (elements.size() == 0) {
-      h_to_unseen = 0;
+      h_to_unseen_min = INT_MAX;
+      h_to_unseen_max = 0;
       h_to_goal = asaplookup->at(source)[goal];
       return;
     }
 
-    h_to_unseen = 0;
+    h_to_unseen_min = INT_MAX;
+    h_to_unseen_max = 0;
     std::vector<int> avp;
     for (int p : elements) {
       avp = vf->get_all_watchers(p);
@@ -61,7 +64,8 @@ struct Partition {
         int tmp_cost = asaplookup->at(source)[q];
         tmp_min_h = std::min(tmp_min_h, tmp_cost);
       }
-      h_to_unseen = std::max(tmp_min_h, h_to_unseen);
+      h_to_unseen_min = std::min(tmp_min_h, h_to_unseen_min);
+      h_to_unseen_max = std::max(tmp_min_h, h_to_unseen_max);
     }
 
     h_to_goal = INT_MAX;
@@ -138,7 +142,8 @@ struct Partition {
 
     Partition par = Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
                               new_elements, upperbound_cost);
-    par.h_to_unseen = std::max(h_to_unseen, other.h_to_unseen);
+    par.h_to_unseen_min = std::min(h_to_unseen_min, other.h_to_unseen_min);
+    par.h_to_unseen_max = std::max(h_to_unseen_max, other.h_to_unseen_max);
     par.h_to_goal = std::min(h_to_goal, other.h_to_goal);
     return par;
   }
@@ -287,8 +292,9 @@ struct Logger {
 inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
                         std::unordered_set<size_t> &checked_partitions,
                         size_t hash_val, Logger &logger, int &best_sumcard,
-                        int &best_sumcost, int k, int el, bool complete_search,
-                        bool &valid_already_found, bool use_upperbound_cost,
+                        int &best_sumcost, std::string hf_type, int k, int el,
+                        bool complete_search, bool &valid_already_found,
+                        bool use_upperbound_cost,
                         bool use_duplication_detection = true) {
   if (use_duplication_detection &&
       checked_partitions.find(hash_values_from_diff(hash_val, p_i, p_j)) !=
@@ -308,9 +314,21 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
         (sumcost - (int)p_i.elements.size() * p_i.cost_of_cover_path -
          (int)p_j.elements.size() * p_j.cost_of_cover_path);
     upperbound_cost /= ((int)p_i.elements.size() + (int)p_j.elements.size());
-    if (std::max(p_i.h_to_unseen, p_j.h_to_unseen) +
-            std::min(p_i.h_to_goal, p_j.h_to_goal) >
-        upperbound_cost) {
+
+    int estimated_cost = 0;
+    if (hf_type == "tunnel") {
+      estimated_cost = std::max(p_i.h_to_unseen_max, p_j.h_to_unseen_max) +
+                       std::min(p_i.h_to_goal, p_j.h_to_goal);
+    } else if (hf_type == "tunnel+") {
+      estimated_cost =
+          std::max(std::max(p_i.h_to_unseen_max, p_j.h_to_unseen_max),
+                   std::min(p_i.h_to_unseen_min, p_j.h_to_unseen_min) +
+                       el * ((int)p_i.elements.size() +
+                             (int)p_j.elements.size() - 1)) +
+          std::min(p_i.h_to_goal, p_j.h_to_goal);
+    }
+
+    if (estimated_cost > upperbound_cost) {
       logger.skipped_count++;
       return true;
     }
