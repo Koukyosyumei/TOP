@@ -28,8 +28,8 @@ do
       FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
       ./topsolver -k $k -l $l -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}n${n}e${e}k${k}l${l}.out -c -u < data/${FILE_NAME}.in &
       done
+     echo "$h - $j k=$k el=$l seed=${seed}" & wait
      done
-    echo "$h - $j k=$k el=$l seed=${seed}" & wait
     done
    done
   done
