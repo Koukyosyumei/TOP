@@ -29,10 +29,10 @@ do
       ./topsolver -k $k -l $l -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}n${n}e${e}k${k}l${l}.out -c -u < data/${FILE_NAME}.in &
       done
      done
+    echo "$h - $j k=$k el=$l seed=${seed}" & wait
     done
    done
   done
-  echo "$h - $j seed=${seed}" & wait
  done
 done
 
