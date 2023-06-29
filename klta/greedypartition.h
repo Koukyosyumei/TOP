@@ -135,12 +135,11 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
                 int source, int goal, HeuristicFuncBase *hfunc,
                 VisibilityFunc *vf, std::vector<std::vector<int>> *graph,
                 std::vector<std::vector<int>> *asaplookup, bool complete_search,
-                float verbose, float timeout, bool use_upperbound_cost) {
+                bool use_upperbound_cost, Logger &logger) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
   std::vector<Partition> subsets;
   std::vector<Partition> unassigned;
-  Logger logger(verbose, timeout);
 
   std::vector<int> visible_points_of_i;
   for (int i = 0; i < N; i++) {

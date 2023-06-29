@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <unordered_map>
@@ -74,20 +75,20 @@ struct Partition {
     }
   }
 
-  void print_element() {
+  void print_element(std::ofstream &log_file) {
     for (int e : elements) {
-      std::cout << e << " ";
+      log_file << e << " ";
     }
-    std::cout << std::endl;
+    log_file << std::endl;
   }
 
-  void print_cover_path() {
+  void print_cover_path(std::ofstream &log_file) {
     for (const Node &node : cover_path) {
-      std::cout << node.location << " ";
+      log_file << node.location << " ";
       for (int p : node.unseen) {
-        std::cout << p << " ";
+        log_file << p << " ";
       }
-      std::cout << std::endl;
+      log_file << std::endl;
     }
   }
 
@@ -239,9 +240,13 @@ struct Logger {
   long long valid_count = 0;
   long long not_promissing_count = 0;
 
-  Logger(float verbose_interval_, float timeout_)
+  std::ofstream log_file;
+
+  Logger(float verbose_interval_, float timeout_, std::string log_file_path)
       : start_time(std::chrono::system_clock::now()),
-        verbose_interval(verbose_interval_), timeout(timeout_) {}
+        verbose_interval(verbose_interval_), timeout(timeout_) {
+    log_file.open(log_file_path, std::ios::out);
+  }
 
   bool print(bool force = false) {
     end_time = std::chrono::system_clock::now();
@@ -249,44 +254,45 @@ struct Logger {
                         end_time - start_time)
                         .count();
     if (force || elasped >= num_print_called * verbose_interval) {
-      std::cout << (num_print_called * verbose_interval) << " [ms], "
-                << sum_card << " Anonymized Paths, " << avg_path_cost
-                << " (Aveage Cost), " << cum_count << " Partitions Evaluated, "
-                << valid_count << " Valid Partitions, " << skipped_count
-                << " Skipped, " << duplicated_count << " Duplicated, "
-                << total_num_expanded_node << " Node Expanded\n";
+      log_file << (num_print_called * verbose_interval) << " [ms], " << sum_card
+               << " Anonymized Paths, " << avg_path_cost << " (Aveage Cost), "
+               << cum_count << " Partitions Evaluated, " << valid_count
+               << " Valid Partitions, " << skipped_count << " Skipped, "
+               << duplicated_count << " Duplicated, " << total_num_expanded_node
+               << " Node Expanded\n";
       num_print_called++;
     }
 
     return elasped >= timeout;
   }
   void summary() {
-    std::cout << "Performance Summary of DFBB:\n";
-    std::cout << "- Number of Evaluated Partitions in Total: " << cum_count
-              << "\n";
-    std::cout << "- Number of Valid Partitions in Total: " << valid_count
-              << "\n";
-    std::cout << "- Number of Skipped Partitions in Total: " << skipped_count
-              << "\n";
-    std::cout << "- Number of Expanded Nodes in Total: "
-              << total_num_expanded_node << "\n";
-    std::cout << "- Number of Evaluted Partitions to Find the First Satisfying "
-                 "Solution: "
-              << num_evaluated_partitions_till_first_solution << "\n";
-    std::cout << "- Number of Expanded Nodes to Find the First Satisfying "
-                 "Solution: "
-              << num_expanded_node_till_first_solution << "\n";
-    std::cout << "- Number of Duplicated Partitions in Total: "
-              << duplicated_count << "\n";
-    std::cout << "- Number of Anonymized Paths: " << sum_card << "\n";
-    std::cout << "- Average Cost of Anonymized Paths: " << avg_path_cost
-              << "\n";
-    std::cout << "- Time: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(
-                     end_time - start_time)
-                     .count()
-              << " [ms]\n";
+    log_file << "Performance Summary of DFBB:\n";
+    log_file << "- Number of Evaluated Partitions in Total: " << cum_count
+             << "\n";
+    log_file << "- Number of Valid Partitions in Total: " << valid_count
+             << "\n";
+    log_file << "- Number of Skipped Partitions in Total: " << skipped_count
+             << "\n";
+    log_file << "- Number of Expanded Nodes in Total: "
+             << total_num_expanded_node << "\n";
+    log_file << "- Number of Evaluted Partitions to Find the First Satisfying "
+                "Solution: "
+             << num_evaluated_partitions_till_first_solution << "\n";
+    log_file << "- Number of Expanded Nodes to Find the First Satisfying "
+                "Solution: "
+             << num_expanded_node_till_first_solution << "\n";
+    log_file << "- Number of Duplicated Partitions in Total: "
+             << duplicated_count << "\n";
+    log_file << "- Number of Anonymized Paths: " << sum_card << "\n";
+    log_file << "- Average Cost of Anonymized Paths: " << avg_path_cost << "\n";
+    log_file << "- Time: "
+             << std::chrono::duration_cast<std::chrono::milliseconds>(
+                    end_time - start_time)
+                    .count()
+             << " [ms]\n";
   }
+
+  void close() { log_file.close(); }
 };
 
 inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,

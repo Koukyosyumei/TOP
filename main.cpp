@@ -9,6 +9,7 @@
 #include "klta/visibility.h"
 #include <chrono>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -16,17 +17,18 @@
 int k = 2;
 int el = 0;
 float verbose = 1000;
-float timeout = 30000;
+float timeout = std::numeric_limits<float>::max();
 std::string partition_type = "merge";
 std::string vf_type = "identity";
 std::string hf_type = "blind";
 std::string j_order_type = "random";
+std::string log_file_path = "log.out";
 bool complete_search = false;
 bool use_upperbound_cost = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:t:cu")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:t:f:cu")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
@@ -52,6 +54,8 @@ void parse_args(int argc, char *argv[]) {
     case 't':
       timeout = atof(optarg);
       break;
+    case 'f':
+      log_file_path = std::string(optarg);
     case 'c':
       complete_search = true;
       break;
@@ -66,17 +70,19 @@ void parse_args(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  std::cout << "Setup Started\n";
-
   parse_args(argc, argv);
-  std::cout << ": k=" << k << "\n";
-  std::cout << ": el=" << el << "\n";
-  std::cout << ": v=" << vf_type << "\n";
-  std::cout << ": h=" << hf_type << "\n";
-  std::cout << ": j=" << j_order_type << "\n";
-  std::cout << ": c=" << complete_search << "\n";
-  std::cout << ": u=" << use_upperbound_cost << "\n";
-  std::cout << ": p=" << partition_type << "\n";
+  Logger logger(verbose, timeout, log_file_path);
+
+  logger.log_file << "Setup Started\n";
+
+  logger.log_file << ": k=" << k << "\n";
+  logger.log_file << ": el=" << el << "\n";
+  logger.log_file << ": v=" << vf_type << "\n";
+  logger.log_file << ": h=" << hf_type << "\n";
+  logger.log_file << ": j=" << j_order_type << "\n";
+  logger.log_file << ": c=" << complete_search << "\n";
+  logger.log_file << ": u=" << use_upperbound_cost << "\n";
+  logger.log_file << ": p=" << partition_type << "\n";
 
   int N, E, source, goal, a, b;
   float c;
@@ -89,10 +95,10 @@ int main(int argc, char *argv[]) {
     graph[a][b] = c;
   }
   std::cin >> source >> goal;
-  std::cout << " Input Loading Completed\n";
+  logger.log_file << " Input Loading Completed\n";
 
   std::vector<std::vector<int>> asaplookup = get_asaplookup(graph);
-  std::cout << " ASAP Table Calculation Completed\n";
+  logger.log_file << " ASAP Table Calculation Completed\n";
 
   VisibilityFunc *vf;
   if (vf_type == "identity") {
@@ -118,19 +124,19 @@ int main(int argc, char *argv[]) {
         "Heuristic function should be blind/tunnel/tunelidentity/mst.");
   }
 
-  std::cout << "Setup Completed\n";
-  std::cout << "Optimal Partition Search Started\n";
+  logger.log_file << "Setup Completed\n";
+  logger.log_file << "Optimal Partition Search Started\n";
 
   std::vector<Partition> partitions;
 
   if (partition_type == "merge") {
-    partitions = merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf,
-                             &graph, &asaplookup, complete_search, verbose,
-                             timeout, use_upperbound_cost);
+    partitions =
+        merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
+                    &asaplookup, complete_search, use_upperbound_cost, logger);
   } else if (partition_type == "greedy") {
     partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
                                  vf, &graph, &asaplookup, complete_search,
-                                 verbose, timeout, use_upperbound_cost);
+                                 use_upperbound_cost, logger);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
@@ -144,20 +150,22 @@ int main(int argc, char *argv[]) {
       sum_card_tmp++;
     }
   }
-  std::cout << "- Lowerbound Cost of Anonnymized Paths: "
-            << sum_dist_tmp / sum_card_tmp << "\n";
+  logger.log_file << "- Lowerbound Cost of Anonnymized Paths: "
+                  << sum_dist_tmp / sum_card_tmp << "\n";
 
   if (partitions.size() == 0) {
-    std::cout << " No Satisfying Partition Found\n";
+    logger.log_file << " No Satisfying Partition Found\n";
   } else {
-    std::cout << " Displaying Optimal Partition...\n";
+    logger.log_file << " Displaying Optimal Partition...\n";
     int count = 0;
     for (Partition &partition : partitions) {
-      std::cout << "Partition " << count << " (" << partition.num_expanded_nodes
-                << " Nodes Expanded)\n";
-      partition.print_element();
-      partition.print_cover_path();
+      logger.log_file << "Partition " << count << " ("
+                      << partition.num_expanded_nodes << " Nodes Expanded)\n";
+      partition.print_element(logger.log_file);
+      partition.print_cover_path(logger.log_file);
       count++;
     }
   }
+
+  logger.close();
 }
