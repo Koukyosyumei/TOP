@@ -1,6 +1,6 @@
 for seed in {1..5}
  do
- for n in 15
+ for n in 10
   do
   for e in 0.2 0.3
    do
@@ -17,7 +17,7 @@ do
  do
   for j in random nearest
   do
-   for n in 15
+   for n in 10
    do
     for e in 0.2 0.3
     do
@@ -28,12 +28,13 @@ do
       FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
       ./topsolver -k $k -l $l -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}n${n}e${e}k${k}l${l}.out -c -u < data/${FILE_NAME}.in &
       done
-     echo "$h - $j k=$k el=$l seed=${seed}" & wait
      done
+     echo "h=$h j=$j n=$n e=$e seed=${seed}" & wait
     done
    done
   done
  done
 done
 
+echo "Finishing..." & wait
 python3 script/report.py -d "output/*" -o report.csv

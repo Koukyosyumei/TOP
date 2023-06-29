@@ -52,7 +52,6 @@ if __name__ == "__main__":
         for i, lin in enumerate(lines):
             if "[ms]" in lin:
                 infos = lin.split(", ")
-                print(path)
                 parsed_infos = [float(i.split(" ")[0]) for i in infos]
                 times_log.append([path] + parsed_infos)
             if "Performance Summary of DFBB" in lin:
