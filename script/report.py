@@ -52,6 +52,7 @@ if __name__ == "__main__":
         for i, lin in enumerate(lines):
             if "[ms]" in lin:
                 infos = lin.split(", ")
+                print(path)
                 parsed_infos = [float(i.split(" ")[0]) for i in infos]
                 times_log.append([path] + parsed_infos)
             if "Performance Summary of DFBB" in lin:
@@ -60,19 +61,20 @@ if __name__ == "__main__":
         if len(lines) == i + 1:
             continue
 
-        df_time_single = pd.DataFrame(times_log)
-        df_time_single.columns = [
-            "path",
-            "time",
-            "NumberOfAnonymizedPaths",
-            "AverageCost",
-            "NumberOfPartitions",
-            "NumberOfValidPartitions",
-            "NumberofSkipped",
-            "NumberOfDuplicated",
-            "NumberOfNodes",
-        ]
-        df_times_logs.append(df_time_single)
+        if (len(times_log) > 0):
+            df_time_single = pd.DataFrame(times_log)
+            df_time_single.columns = [
+                "path",
+                "time",
+                "NumberOfAnonymizedPaths",
+                "AverageCost",
+                "NumberOfPartitions",
+                "NumberOfValidPartitions",
+                "NumberofSkipped",
+                "NumberOfDuplicated",
+                "NumberOfNodes",
+            ]
+            df_times_logs.append(df_time_single)
 
         num_evaluated_partitions = lines[i + 1].split(": ")[1]
         num_valid_partitions = lines[i + 2].split(": ")[1]

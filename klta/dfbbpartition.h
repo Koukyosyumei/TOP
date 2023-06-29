@@ -109,8 +109,8 @@ inline bool merge_df_bb_search(
     logger.sum_card = best_sumcard;
     float best_avg_cost = (float)best_sumcost / (float)best_sumcard;
     logger.avg_path_cost = best_avg_cost;
-    std::cout << "Best Cardinarity: " << best_sumcard
-              << ", Best AVG Cost: " << best_avg_cost << "\n";
+    // std::cout << "Best Cardinarity: " << best_sumcard
+    //          << ", Best AVG Cost: " << best_avg_cost << "\n";
   }
 
   if (valid_paritions) {
@@ -182,11 +182,10 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
             int source, int goal, HeuristicFuncBase *hfunc, VisibilityFunc *vf,
             std::vector<std::vector<int>> *graph,
             std::vector<std::vector<int>> *asaplookup, bool complete_search,
-            float verbose, float timeout, bool use_upperbound_cost) {
+            bool use_upperbound_cost, Logger &logger) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
   std::vector<Partition> partitions;
-  Logger logger(verbose, timeout);
 
   std::vector<int> visible_points_of_i;
   for (int i = 0; i < N; i++) {
@@ -212,7 +211,8 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
     }
   }
 
-  std::cout << graph->size() - 2 - partitions.size() << " Nodes Removed\n";
+  logger.log_file << graph->size() - 2 - partitions.size()
+                  << " Nodes Removed\n";
 
   int best_sumcard = 0;
   int best_sumcost = INT_MAX;
