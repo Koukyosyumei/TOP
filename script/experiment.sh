@@ -1,6 +1,6 @@
 for seed in {1..5}
  do
- for n in 10
+ for n in 13
   do
   for e in 0.2 0.3
    do
@@ -17,7 +17,7 @@ do
  do
   for j in random nearest
   do
-   for n in 10
+   for n in 13
    do
     for e in 0.2 0.3
     do
