@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
   float c;
   std::cin >> N >> E;
 
-  std::vector<std::vector<int>> graph(N, std::vector<int>(N, INT_MAX));
+  std::vector<std::vector<int>> graph(N, std::vector<int>(N, MAX_DIST));
 
   for (int i = 0; i < E; i++) {
     std::cin >> a >> b >> c;
@@ -144,8 +144,8 @@ int main(int argc, char *argv[]) {
   float sum_dist_tmp = 0;
   float sum_card_tmp = 0;
   for (int i = 0; i < N; i++) {
-    if ((i != source) && (i != goal) && (asaplookup[source][i] != INT_MAX) &&
-        (asaplookup[i][goal] != INT_MAX)) {
+    if ((i != source) && (i != goal) && (asaplookup[source][i] != MAX_DIST) &&
+        (asaplookup[i][goal] != MAX_DIST)) {
       sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
       sum_card_tmp++;
     }
