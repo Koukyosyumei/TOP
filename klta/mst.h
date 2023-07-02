@@ -66,7 +66,7 @@ inline int mst_cost(std::vector<std::vector<int>> adj_matrix) {
   std::vector<Edge> edges;
   for (int i = 0; i < adj_matrix.size(); i++) {
     for (int j = i; j < adj_matrix[i].size(); j++) {
-      if (adj_matrix[i][j] != INT_MAX) {
+      if (adj_matrix[i][j] != MAX_DIST) {
         Edge e = {i, j, adj_matrix[i][j]};
         edges.push_back(e);
       }

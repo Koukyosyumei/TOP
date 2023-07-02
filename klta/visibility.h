@@ -10,7 +10,10 @@
 #include <utility>
 #include <vector>
 
+#include "parallel_hashmap/phmap.h"
 #include "utils.h"
+
+using phmap::flat_hash_set;
 
 struct VisibilityFunc {
   std::vector<std::vector<int>> graph;
@@ -30,7 +33,7 @@ struct OneStepVF : public VisibilityFunc {
   std::vector<int> get_all_visible_points(int i) {
     std::vector<int> result;
     for (int j = 0; j < graph.size(); j++) {
-      if (graph[i][j] != INT_MAX) {
+      if (graph[i][j] != MAX_DIST) {
         result.push_back(j);
       }
     }
@@ -40,7 +43,7 @@ struct OneStepVF : public VisibilityFunc {
   std::vector<int> get_all_watchers(int i) {
     std::vector<int> result;
     for (int j = 0; j < graph.size(); j++) {
-      if (graph[j][i] != INT_MAX) {
+      if (graph[j][i] != MAX_DIST) {
         result.push_back(j);
       }
     }
@@ -51,12 +54,12 @@ struct OneStepVF : public VisibilityFunc {
 
 inline std::vector<int>
 choose_maximal_set_of_los_disjoint(VisibilityFunc *vf,
-                                   std::unordered_set<int> &unseen, int cur) {
+                                   flat_hash_set<int> &unseen, int cur) {
   std::vector<int> pivots;
   for (int u : unseen) {
     bool disjoint = true;
     std::vector<int> u_los = vf->get_all_watchers(u);
-    std::unordered_set<int> u_los_set(u_los.begin(), u_los.end());
+    flat_hash_set<int> u_los_set(u_los.begin(), u_los.end());
     for (int p : pivots) {
       std::vector<int> p_los = vf->get_all_watchers(p);
       for (int q : p_los) {
@@ -86,7 +89,7 @@ inline std::vector<int> choose_frontier_watcher(VisibilityFunc *vf, int cur,
   for (int w : watchers) {
     bool is_internal = true;
     for (int i = 0; i < vf->graph.size(); i++) {
-      if (vf->graph[i][w] != INT_MAX && is_component[i]) {
+      if (vf->graph[i][w] != MAX_DIST && is_component[i]) {
         is_internal = false;
         break;
       }

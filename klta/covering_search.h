@@ -11,12 +11,15 @@
 #include <vector>
 
 #include "heuristic.h"
+#include "parallel_hashmap/phmap.h"
 #include "utils.h"
 #include "visibility.h"
 
+using phmap::flat_hash_map;
+
 inline Node make_root_node(VisibilityFunc *vf, int location_id,
                            std::vector<int> target_elements) {
-  std::unordered_set<int> unseen;
+  flat_hash_set<int> unseen;
   for (int i : target_elements) {
     unseen.insert(i);
   }
@@ -39,7 +42,7 @@ inline std::vector<Node> make_children_nodes(VisibilityFunc *vf, Node node,
   std::vector<int> visible_points;
 
   for (int i = 0; i < vf->graph.size(); i++) {
-    if (i != node.location && vf->graph[node.location][i] != INT_MAX) {
+    if (i != node.location && vf->graph[node.location][i] != MAX_DIST) {
       Node child = Node(i, node.unseen, parent_id,
                         node.g + vf->graph[node.location][i], node.hash_value);
       child.hash_value ^= std::hash<std::string>{}(
@@ -71,7 +74,7 @@ search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
   queue.push(std::make_tuple(-1 * (h + nodes[nodes.size() - 1].g), -1 * h,
                              nodes.size() - 1));
   // }
-  std::unordered_map<size_t, int> state_cost = {{nodes[0].hash_value, 0}};
+  flat_hash_map<size_t, int> state_cost = {{nodes[0].hash_value, 0}};
   std::tuple<int, int, int> front_status;
   std::vector<Node> children;
   int node_idx, succ_g, old_succ_g;
@@ -96,7 +99,7 @@ search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
       for (Node child : children) {
         nodes.emplace_back(child);
         h = hfunc->calculate_hval(nodes[nodes.size() - 1]);
-        old_succ_g = INT_MAX;
+        old_succ_g = MAX_DIST;
         succ_g = nodes[nodes.size() - 1].g;
         if (h + succ_g <= upperbound_cost) {
           if (state_cost.find(child.hash_value) != state_cost.end()) {

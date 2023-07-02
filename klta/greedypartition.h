@@ -8,7 +8,7 @@
 inline bool greedypartition_search(
     std::string j_order_type, std::vector<Partition> &best_partitions,
     std::vector<Partition> subsets, std::vector<Partition> unassigned,
-    std::unordered_set<size_t> &checked_partitions, Logger &logger,
+    flat_hash_set<size_t> &checked_partitions, Logger &logger,
     int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
     bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
 
@@ -99,7 +99,7 @@ inline bool greedypartition_search(
         continue;
       }
 
-      subsets[i] = subsets[i].merge(picked, INT_MAX);
+      subsets[i] = subsets[i].merge(picked, MAX_DIST);
       logger.total_num_expanded_node += subsets[i].num_expanded_nodes;
 
       if (subsets[i].cover_path.size() == 0) {
@@ -149,8 +149,8 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
     bool is_valid = false;
     visible_points_of_i = vf->get_all_watchers(i);
     for (int j : visible_points_of_i) {
-      if ((asaplookup->at(source)[j] != INT_MAX) &&
-          (asaplookup->at(j)[goal] != INT_MAX)) {
+      if ((asaplookup->at(source)[j] != MAX_DIST) &&
+          (asaplookup->at(j)[goal] != MAX_DIST)) {
         is_valid = true;
         break;
       }
@@ -158,7 +158,7 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
     if (is_valid) {
       std::vector<int> tmp_elements = {i};
       unassigned.push_back(Partition(k, el, source, goal, hfunc, vf, graph,
-                                     asaplookup, tmp_elements, INT_MAX));
+                                     asaplookup, tmp_elements, MAX_DIST));
       unassigned[unassigned.size() - 1].calculate_singleton_h_value();
       logger.total_num_expanded_node +=
           unassigned[unassigned.size() - 1].num_expanded_nodes;
@@ -168,9 +168,9 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
   std::cout << graph->size() - 2 - unassigned.size() << " Nodes Removed\n";
 
   int best_sumcard = 0;
-  int best_sumcost = INT_MAX;
+  int best_sumcost = MAX_DIST;
   bool valid_found = false;
-  std::unordered_set<size_t> checked_partitions;
+  flat_hash_set<size_t> checked_partitions;
   greedypartition_search(j_order_type, best_partitions, subsets, unassigned,
                          checked_partitions, logger, best_sumcard, best_sumcost,
                          hf_type, k, el, complete_search, valid_found,
