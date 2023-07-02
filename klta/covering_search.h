@@ -18,7 +18,7 @@
 using phmap::flat_hash_map;
 
 inline Node make_root_node(VisibilityFunc *vf, int location_id,
-                           std::vector<int> target_elements) {
+                           std::vector<int> &target_elements) {
   flat_hash_set<int> unseen;
   for (int i : target_elements) {
     unseen.insert(i);
