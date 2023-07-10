@@ -134,10 +134,12 @@ struct MSTHeuristic : public HeuristicFuncBase {
       int watcher_num_of_pivpt_i = watchers[i].size();
       for (int j = 0; j < watcher_num_of_pivpt_i; j++) {
         counter++;
-        adj_matrix[pivots_id][counter] = asaplookup[pivots[i]][watchers[i][j]];
+        adj_matrix[pivots_id][counter] = 0;
         adj_matrix[counter][pivots_id] = 0;
-        adj_matrix[0][counter] = asaplookup[node.location][watchers[i][j]];
-        adj_matrix[counter][0] = asaplookup[watchers[i][j]][node.location];
+        adj_matrix[0][counter] =
+            std::min(asaplookup[node.location][watchers[i][j]],
+                     asaplookup[watchers[i][j]][node.location]);
+        adj_matrix[counter][0] = adj_matrix[0][counter];
       }
     }
     h_mst = mst_cost(adj_matrix);

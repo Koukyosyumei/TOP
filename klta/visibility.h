@@ -17,7 +17,12 @@ using phmap::flat_hash_set;
 
 struct VisibilityFunc {
   std::vector<std::vector<int>> graph;
-  VisibilityFunc(std::vector<std::vector<int>> &graph_) { graph = graph_; }
+  std::vector<std::vector<int>> asaplookup;
+  VisibilityFunc(std::vector<std::vector<int>> &graph_,
+                 std::vector<std::vector<int>> &asaplookup_) {
+    graph = graph_;
+    asaplookup = asaplookup_;
+  }
   virtual std::vector<int> get_all_visible_points(int i) = 0;
   virtual std::vector<int> get_all_watchers(int i) = 0;
 };
@@ -26,6 +31,46 @@ struct IdentityVF : public VisibilityFunc {
   using VisibilityFunc::VisibilityFunc;
   std::vector<int> get_all_visible_points(int i) { return {i}; }
   std::vector<int> get_all_watchers(int i) { return {i}; }
+};
+
+struct RadiusVF : public VisibilityFunc {
+  int radius;
+  std::unordered_map<int, std::vector<int>> cache_av;
+  std::unordered_map<int, std::vector<int>> cache_aw;
+  RadiusVF(int radius_, std::vector<std::vector<int>> &graph_,
+           std::vector<std::vector<int>> &asaplookup_)
+      : radius(radius_), VisibilityFunc(graph_, asaplookup_) {}
+  std::vector<int> get_all_visible_points(int i) {
+    auto it = cache_av.find(i);
+    if (it != cache_av.end()) {
+      return it->second;
+    }
+    std::vector<int> result;
+    for (int j = 0; j < graph.size(); j++) {
+      if (asaplookup[i][j] <= radius) {
+        result.push_back(j);
+      }
+    }
+    result.push_back(i);
+    cache_av[i] = result;
+    return result;
+  }
+  std::vector<int> get_all_watchers(int i) {
+    auto it = cache_aw.find(i);
+    if (it != cache_aw.end()) {
+      return it->second;
+    }
+
+    std::vector<int> result;
+    for (int j = 0; j < graph.size(); j++) {
+      if (asaplookup[j][i] <= radius) {
+        result.push_back(j);
+      }
+    }
+    result.push_back(i);
+    cache_aw[i] = result;
+    return result;
+  }
 };
 
 struct OneStepVF : public VisibilityFunc {

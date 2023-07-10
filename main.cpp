@@ -102,9 +102,9 @@ int main(int argc, char *argv[]) {
 
   VisibilityFunc *vf;
   if (vf_type == "identity") {
-    vf = new IdentityVF(graph);
+    vf = new IdentityVF(graph, asaplookup);
   } else if (vf_type == "onestep") {
-    vf = new OneStepVF(graph);
+    vf = new OneStepVF(graph, asaplookup);
   } else {
     throw std::invalid_argument(
         "Visibility function should be identity/onestep");
