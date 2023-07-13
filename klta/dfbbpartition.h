@@ -1,19 +1,21 @@
 #pragma once
 #include "covering_search.h"
+#include "parallel_hashmap/phmap.h"
 #include "partition.h"
 #include "utils.h"
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <numeric>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
+
+using phmap::flat_hash_map;
+using phmap::flat_hash_set;
 
 inline std::vector<size_t>
 orderofj(int i, std::string j_order_type, int sumcost,
          std::vector<Partition> &partitions,
-         std::unordered_set<size_t> &checked_partitions, size_t hash_val,
+         flat_hash_set<size_t> &checked_partitions, size_t hash_val,
          Logger &logger, int &best_sumcard, int &best_sumcost,
          std::string hf_type, int k, int el, bool complete_search,
          bool &valid_already_found, bool use_upperbound_cost) {
@@ -64,7 +66,7 @@ orderofj(int i, std::string j_order_type, int sumcost,
 inline bool merge_df_bb_search(
     std::string j_order_type, std::vector<Partition> &best_partitions,
     std::vector<Partition> &partitions,
-    std::unordered_set<size_t> &checked_partitions, Logger &logger,
+    flat_hash_set<size_t> &checked_partitions, Logger &logger,
     int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
     bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
 
@@ -142,7 +144,7 @@ inline bool merge_df_bb_search(
                  complete_search, valid_already_found, use_upperbound_cost);
 
     for (int j : j_order) {
-      Partition partition_i_j = partitions[i].merge(partitions[j], INT_MAX);
+      Partition partition_i_j = partitions[i].merge(partitions[j], MAX_DIST);
 
       logger.total_num_expanded_node += partition_i_j.num_expanded_nodes;
 
@@ -195,8 +197,8 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
     bool is_valid = false;
     visible_points_of_i = vf->get_all_watchers(i);
     for (int j : visible_points_of_i) {
-      if ((asaplookup->at(source)[j] != INT_MAX) &&
-          (asaplookup->at(j)[goal] != INT_MAX)) {
+      if ((asaplookup->at(source)[j] != MAX_DIST) &&
+          (asaplookup->at(j)[goal] != MAX_DIST)) {
         is_valid = true;
         break;
       }
@@ -204,7 +206,7 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
     if (is_valid) {
       std::vector<int> tmp_elements = {i};
       partitions.push_back(Partition(k, el, source, goal, hfunc, vf, graph,
-                                     asaplookup, tmp_elements, INT_MAX));
+                                     asaplookup, tmp_elements, MAX_DIST));
       partitions[partitions.size() - 1].calculate_singleton_h_value();
       logger.total_num_expanded_node +=
           partitions[partitions.size() - 1].num_expanded_nodes;
@@ -215,9 +217,9 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
                   << " Nodes Removed\n";
 
   int best_sumcard = 0;
-  int best_sumcost = INT_MAX;
+  int best_sumcost = MAX_DIST;
   bool valid_found = false;
-  std::unordered_set<size_t> checked_partitions;
+  flat_hash_set<size_t> checked_partitions;
   merge_df_bb_search(j_order_type, best_partitions, partitions,
                      checked_partitions, logger, best_sumcard, best_sumcost,
                      hf_type, k, el, complete_search, valid_found,

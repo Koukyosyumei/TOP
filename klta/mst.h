@@ -44,16 +44,16 @@ inline bool comp_e(const Edge &e1, const Edge &e2) { return e1.cost < e2.cost; }
 struct Kruskal {
   UnionFind uft;
   long long sum; // 最小全域木の重みの総和
-  std::vector<Edge> edges;
+  std::vector<Edge> *edges;
   int V;
-  Kruskal(const std::vector<Edge> &edges_, int V_) : edges(edges_), V(V_) {
-    init();
-  }
+  Kruskal(std::vector<Edge> *edges_, int V_) : edges(edges_), V(V_) { init(); }
   void init() {
-    sort(edges.begin(), edges.end(), comp_e); // 辺の重みでソート
+    sort(edges->begin(), edges->end(), comp_e); // 辺の重みでソート
     uft = UnionFind(V);
     sum = 0;
-    for (auto e : edges) {
+    int num_edges = edges->size();
+    for (int i = 0; i < num_edges; i++) {
+      Edge e = edges->at(i);
       if (!uft.isSame(e.u, e.v)) { // 閉路にならなければ加える
         uft.unite(e.u, e.v);
         sum += e.cost;
@@ -62,17 +62,7 @@ struct Kruskal {
   }
 };
 
-inline int mst_cost(std::vector<std::vector<int>> adj_matrix) {
-  std::vector<Edge> edges;
-  for (int i = 0; i < adj_matrix.size(); i++) {
-    for (int j = i; j < adj_matrix[i].size(); j++) {
-      if (adj_matrix[i][j] != INT_MAX) {
-        Edge e = {i, j, adj_matrix[i][j]};
-        edges.push_back(e);
-      }
-    }
-  }
-
-  Kruskal krs(edges, adj_matrix.size());
+inline int mst_cost(std::vector<Edge> *edges, int N) {
+  Kruskal krs(edges, N);
   return krs.sum;
 }

@@ -1,8 +1,12 @@
 #pragma once
 
 #include "mst.h"
+#include "parallel_hashmap/phmap.h"
 #include "utils.h"
 #include "visibility.h"
+
+using phmap::flat_hash_map;
+using phmap::flat_hash_set;
 
 struct HeuristicFuncBase {
   VisibilityFunc *vf;
@@ -39,7 +43,7 @@ struct TunnelHeuristic : public HeuristicFuncBase {
     std::vector<int> avp;
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
-      int tmp_min_h = INT_MAX;
+      int tmp_min_h = MAX_DIST;
       for (int q : avp) {
         int tmp_cost = asaplookup[node.location][q];
         tmp_min_h = std::min(tmp_min_h, tmp_cost);
@@ -47,7 +51,7 @@ struct TunnelHeuristic : public HeuristicFuncBase {
       h_to_unseen = std::max(tmp_min_h, h_to_unseen);
     }
 
-    int h_to_goal = INT_MAX;
+    int h_to_goal = MAX_DIST;
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
       for (int q : avp) {
@@ -71,12 +75,12 @@ struct TunnelPlusHeuristic : public HeuristicFuncBase {
       return asaplookup[node.location][goal];
     }
 
-    int h_to_unseen_min = INT_MAX;
+    int h_to_unseen_min = MAX_DIST;
     int h_to_unseen_max = 0;
     std::vector<int> avp;
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
-      int tmp_min_h = INT_MAX;
+      int tmp_min_h = MAX_DIST;
       for (int q : avp) {
         int tmp_cost = asaplookup[node.location][q];
         tmp_min_h = std::min(tmp_min_h, tmp_cost);
@@ -85,7 +89,7 @@ struct TunnelPlusHeuristic : public HeuristicFuncBase {
       h_to_unseen_max = std::max(tmp_min_h, h_to_unseen_max);
     }
 
-    int h_to_goal = INT_MAX;
+    int h_to_goal = MAX_DIST;
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
       for (int q : avp) {
@@ -118,9 +122,7 @@ struct MSTHeuristic : public HeuristicFuncBase {
     }
 
     int pivots_num = pivots.size();
-    std::vector<std::vector<int>> adj_matrix = std::vector<std::vector<int>>(
-        1 + pivots_num + watchers_num,
-        std::vector<int>(1 + pivots_num + watchers_num, INT_MAX));
+    std::vector<Edge> edges;
 
     int pivots_id = 0;
     int counter = 0;
@@ -130,16 +132,18 @@ struct MSTHeuristic : public HeuristicFuncBase {
       int watcher_num_of_pivpt_i = watchers[i].size();
       for (int j = 0; j < watcher_num_of_pivpt_i; j++) {
         counter++;
-        adj_matrix[pivots_id][counter] = asaplookup[pivots[i]][watchers[i][j]];
-        adj_matrix[counter][pivots_id] = 0;
-        adj_matrix[0][counter] = asaplookup[node.location][watchers[i][j]];
-        adj_matrix[counter][0] = asaplookup[watchers[i][j]][node.location];
+        Edge e1 = {pivots_id, counter, 0};
+        Edge e2 = {0, counter,
+                   std::min(asaplookup[node.location][watchers[i][j]],
+                            asaplookup[watchers[i][j]][node.location])};
+        edges.emplace_back(e1);
+        edges.emplace_back(e2);
       }
     }
-    h_mst = mst_cost(adj_matrix);
+    h_mst = mst_cost(&edges, 1 + pivots_num + watchers_num);
 
     std::vector<int> avp;
-    int h_to_goal = INT_MAX;
+    int h_to_goal = MAX_DIST;
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
       for (int q : avp) {

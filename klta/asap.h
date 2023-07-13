@@ -13,7 +13,7 @@
 inline std::vector<std::vector<int>>
 get_asaplookup(std::vector<std::vector<int>> &graph) {
   int N = graph.size();
-  std::vector<std::vector<int>> asaplookup(N, std::vector<int>(N, INT_MAX));
+  std::vector<std::vector<int>> asaplookup(N, std::vector<int>(N, MAX_DIST));
   for (int i = 0; i < N; i++) {
     std::priority_queue<std::pair<int, int>> que;
     std::vector<std::vector<bool>> seen(N, std::vector<bool>(N, false));
@@ -30,7 +30,7 @@ get_asaplookup(std::vector<std::vector<int>> &graph) {
       seen[i][v] = true;
 
       for (int j = 0; j < N; j++) {
-        if ((i == j) || graph[v][j] == INT_MAX) {
+        if ((i == j) || graph[v][j] == MAX_DIST) {
           continue;
         }
         if (asaplookup[i][j] > asaplookup[i][v] + graph[v][j]) {

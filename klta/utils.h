@@ -3,6 +3,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <queue>
 #include <string>
 #include <unordered_map>
@@ -10,18 +11,22 @@
 #include <utility>
 #include <vector>
 
-const int INT_MAX = 1e5;
+#include "parallel_hashmap/phmap.h"
+
+using phmap::flat_hash_set;
+
+const int MAX_DIST = 1e5; // std::numeric_limits<int>::max();
 const std::string CURLOC_PREFIX = "cur_loc:";
 
 struct Node {
   int location;
-  std::unordered_set<int> unseen;
+  flat_hash_set<int> unseen;
   int parent_id = -1;
   int g = 0;
   size_t hash_value;
 
   Node(){};
-  Node(int location, std::unordered_set<int> unseen, int parent_id, int g,
+  Node(int location, flat_hash_set<int> unseen, int parent_id, int g,
        size_t hash_value)
       : location(location), unseen(unseen), parent_id(parent_id), g(g),
         hash_value(hash_value) {}

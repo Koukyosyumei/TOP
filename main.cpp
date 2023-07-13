@@ -16,6 +16,7 @@
 
 int k = 2;
 int el = 0;
+int r = 1;
 float verbose = 1000;
 float timeout = std::numeric_limits<float>::max();
 std::string partition_type = "merge";
@@ -28,7 +29,7 @@ bool use_upperbound_cost = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:p:h:j:b:t:f:cu")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:v:r:p:h:j:b:t:f:cu")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
@@ -38,6 +39,9 @@ void parse_args(int argc, char *argv[]) {
       break;
     case 'v':
       vf_type = std::string(optarg);
+      break;
+    case 'r':
+      r = std::stoi(optarg);
       break;
     case 'p':
       partition_type = std::string(optarg);
@@ -83,12 +87,13 @@ int main(int argc, char *argv[]) {
   logger.log_file << ": c=" << complete_search << "\n";
   logger.log_file << ": u=" << use_upperbound_cost << "\n";
   logger.log_file << ": p=" << partition_type << "\n";
+  logger.log_file << ": r=" << r << "\n";
 
   int N, E, source, goal, a, b;
   float c;
   std::cin >> N >> E;
 
-  std::vector<std::vector<int>> graph(N, std::vector<int>(N, INT_MAX));
+  std::vector<std::vector<int>> graph(N, std::vector<int>(N, MAX_DIST));
 
   for (int i = 0; i < E; i++) {
     std::cin >> a >> b >> c;
@@ -102,9 +107,11 @@ int main(int argc, char *argv[]) {
 
   VisibilityFunc *vf;
   if (vf_type == "identity") {
-    vf = new IdentityVF(graph);
+    vf = new IdentityVF(graph, asaplookup);
   } else if (vf_type == "onestep") {
-    vf = new OneStepVF(graph);
+    vf = new OneStepVF(graph, asaplookup);
+  } else if (vf_type == "radius") {
+    vf = new RadiusVF(r, graph, asaplookup);
   } else {
     throw std::invalid_argument(
         "Visibility function should be identity/onestep");
@@ -126,7 +133,6 @@ int main(int argc, char *argv[]) {
 
   logger.log_file << "Setup Completed\n";
   logger.log_file << "Optimal Partition Search Started\n";
-
   std::vector<Partition> partitions;
 
   if (partition_type == "merge") {
@@ -136,7 +142,11 @@ int main(int argc, char *argv[]) {
   } else if (partition_type == "greedy") {
     partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
                                  vf, &graph, &asaplookup, complete_search,
-                                 use_upperbound_cost, logger);
+                                 use_upperbound_cost, logger, false);
+  } else if (partition_type == "greedy+") {
+    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
+                                 vf, &graph, &asaplookup, complete_search,
+                                 use_upperbound_cost, logger, true);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
@@ -144,8 +154,8 @@ int main(int argc, char *argv[]) {
   float sum_dist_tmp = 0;
   float sum_card_tmp = 0;
   for (int i = 0; i < N; i++) {
-    if ((i != source) && (i != goal) && (asaplookup[source][i] != INT_MAX) &&
-        (asaplookup[i][goal] != INT_MAX)) {
+    if ((i != source) && (i != goal) && (asaplookup[source][i] != MAX_DIST) &&
+        (asaplookup[i][goal] != MAX_DIST)) {
       sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
       sum_card_tmp++;
     }

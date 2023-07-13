@@ -1,5 +1,6 @@
 #pragma once
 #include "covering_search.h"
+#include "parallel_hashmap/phmap.h"
 #include "utils.h"
 #include <algorithm>
 #include <chrono>
@@ -10,6 +11,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+using phmap::flat_hash_map;
+using phmap::flat_hash_set;
 
 struct Partition {
   int k, el;
@@ -24,9 +28,9 @@ struct Partition {
   int cost_of_cover_path;
   bool is_satisfying = true;
   bool is_cover_path_searched = false;
-  int h_to_unseen_min = INT_MAX;
+  int h_to_unseen_min = MAX_DIST;
   int h_to_unseen_max = 0;
-  int h_to_goal = INT_MAX;
+  int h_to_goal = MAX_DIST;
 
   Partition(){};
   Partition(int k, int el, int source, int goal, HeuristicFuncBase *hfunc,
@@ -49,18 +53,18 @@ struct Partition {
 
   void calculate_singleton_h_value() {
     if (elements.size() == 0) {
-      h_to_unseen_min = INT_MAX;
+      h_to_unseen_min = MAX_DIST;
       h_to_unseen_max = 0;
       h_to_goal = asaplookup->at(source)[goal];
       return;
     }
 
-    h_to_unseen_min = INT_MAX;
+    h_to_unseen_min = MAX_DIST;
     h_to_unseen_max = 0;
     std::vector<int> avp;
     for (int p : elements) {
       avp = vf->get_all_watchers(p);
-      int tmp_min_h = INT_MAX;
+      int tmp_min_h = MAX_DIST;
       for (int q : avp) {
         int tmp_cost = asaplookup->at(source)[q];
         tmp_min_h = std::min(tmp_min_h, tmp_cost);
@@ -69,7 +73,7 @@ struct Partition {
       h_to_unseen_max = std::max(tmp_min_h, h_to_unseen_max);
     }
 
-    h_to_goal = INT_MAX;
+    h_to_goal = MAX_DIST;
     for (int p : elements) {
       h_to_goal = std::min(h_to_goal, asaplookup->at(p)[goal]);
     }
@@ -150,7 +154,7 @@ struct Partition {
   }
 
   int dist(const Partition &rhs) {
-    int dist = INT_MAX;
+    int dist = MAX_DIST;
     for (int i : elements) {
       for (int j : rhs.elements) {
         dist = std::min(dist, asaplookup->at(i)[j]);
@@ -161,7 +165,7 @@ struct Partition {
   }
 
   int pathmatch(const Partition &rhs) {
-    std::unordered_set<int> this_path_set, rhs_path_set;
+    flat_hash_set<int> this_path_set, rhs_path_set;
     for (const Node &i : cover_path) {
       this_path_set.emplace(i.location);
     }
@@ -296,7 +300,7 @@ struct Logger {
 };
 
 inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
-                        std::unordered_set<size_t> &checked_partitions,
+                        flat_hash_set<size_t> &checked_partitions,
                         size_t hash_val, Logger &logger, int &best_sumcard,
                         int &best_sumcost, std::string hf_type, int k, int el,
                         bool complete_search, bool &valid_already_found,
@@ -313,7 +317,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
     logger.skipped_count++;
     return true;
   }
-  int upperbound_cost = INT_MAX;
+  int upperbound_cost = MAX_DIST;
   if (valid_already_found && use_upperbound_cost) {
     upperbound_cost =
         best_sumcost -
@@ -322,7 +326,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
     upperbound_cost /= ((int)p_i.elements.size() + (int)p_j.elements.size());
 
     int estimated_cost = 0;
-    if (hf_type == "tunnel") {
+    if (hf_type == "tunnel" || hf_type == "mst") {
       estimated_cost = std::max(p_i.h_to_unseen_max, p_j.h_to_unseen_max) +
                        std::min(p_i.h_to_goal, p_j.h_to_goal);
     } else if (hf_type == "tunnel+") {
@@ -341,7 +345,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
   }
 
   int dist_between_i_j = p_i.dist(p_j);
-  if (dist_between_i_j < el || dist_between_i_j == INT_MAX) {
+  if (dist_between_i_j < el || dist_between_i_j == MAX_DIST) {
     logger.skipped_count++;
     return true;
   }
