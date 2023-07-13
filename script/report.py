@@ -25,11 +25,11 @@ if __name__ == "__main__":
     for path in glob.glob(parsed_args.dir):
         matches = re.findall(r"=(.*?)_", path)
         n = -1
-        p = -1
+        ep = -1
         s = -1
         if len(matches) >= 3:
             n = matches[0]
-            p = matches[1]
+            ep = matches[1]
             s = matches[2]
 
         with open(path, mode="r") as f:
@@ -47,6 +47,7 @@ if __name__ == "__main__":
         c = lines[6].split("=")[1]
         u = lines[7].split("=")[1]
         p = lines[8].split("=")[1]
+        r = lines[9].split("=")[1]
 
         times_log = []
         for i, lin in enumerate(lines):
@@ -91,7 +92,7 @@ if __name__ == "__main__":
             [
                 path,
                 n,
-                p,
+                ep,
                 s,
                 k,
                 el,
@@ -101,6 +102,7 @@ if __name__ == "__main__":
                 c,
                 u,
                 p,
+                r,
                 num_evaluated_partitions,
                 num_valid_partitions,
                 num_skipped_partitions,
@@ -129,6 +131,7 @@ if __name__ == "__main__":
         "complete_search",
         "upperbound_pruning",
         "partition_type",
+        "radius",
         "num_evaluated_partitions",
         "num_valid_partitions",
         "num_skipped_partitions",

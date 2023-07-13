@@ -1,6 +1,6 @@
 for seed in {1..5}
  do
- for n in 13
+ for n in 5
   do
   for e in 0.2 0.3
    do
@@ -17,7 +17,7 @@ do
  do
   for j in random
   do
-   for n in 13
+   for n in 5
    do
     for e in 0.2 0.3
     do
@@ -26,7 +26,7 @@ do
       for l in 2
       do
       FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
-      ./topsolver -k $k -l $l -v onestep -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}n${n}e${e}k${k}l${l}.out -c -u < data/${FILE_NAME}.in &
+      ./topsolver -k $k -l $l -v radius -r 2 -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}n${n}e${e}k${k}l${l}.out -c -u < data/${FILE_NAME}.in &
       done
      done
      echo "h=$h j=$j n=$n e=$e seed=${seed}" & wait

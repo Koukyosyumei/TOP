@@ -326,7 +326,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
     upperbound_cost /= ((int)p_i.elements.size() + (int)p_j.elements.size());
 
     int estimated_cost = 0;
-    if (hf_type == "tunnel") {
+    if (hf_type == "tunnel" || hf_type == "mst") {
       estimated_cost = std::max(p_i.h_to_unseen_max, p_j.h_to_unseen_max) +
                        std::min(p_i.h_to_goal, p_j.h_to_goal);
     } else if (hf_type == "tunnel+") {

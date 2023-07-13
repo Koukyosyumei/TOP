@@ -122,9 +122,7 @@ struct MSTHeuristic : public HeuristicFuncBase {
     }
 
     int pivots_num = pivots.size();
-    std::vector<std::vector<int>> adj_matrix = std::vector<std::vector<int>>(
-        1 + pivots_num + watchers_num,
-        std::vector<int>(1 + pivots_num + watchers_num, MAX_DIST));
+    std::vector<Edge> edges;
 
     int pivots_id = 0;
     int counter = 0;
@@ -134,15 +132,15 @@ struct MSTHeuristic : public HeuristicFuncBase {
       int watcher_num_of_pivpt_i = watchers[i].size();
       for (int j = 0; j < watcher_num_of_pivpt_i; j++) {
         counter++;
-        adj_matrix[pivots_id][counter] = 0;
-        adj_matrix[counter][pivots_id] = 0;
-        adj_matrix[0][counter] =
-            std::min(asaplookup[node.location][watchers[i][j]],
-                     asaplookup[watchers[i][j]][node.location]);
-        adj_matrix[counter][0] = adj_matrix[0][counter];
+        Edge e1 = {pivots_id, counter, 0};
+        Edge e2 = {0, counter,
+                   std::min(asaplookup[node.location][watchers[i][j]],
+                            asaplookup[watchers[i][j]][node.location])};
+        edges.emplace_back(e1);
+        edges.emplace_back(e2);
       }
     }
-    h_mst = mst_cost(adj_matrix);
+    h_mst = mst_cost(&edges, 1 + pivots_num + watchers_num);
 
     std::vector<int> avp;
     int h_to_goal = MAX_DIST;
