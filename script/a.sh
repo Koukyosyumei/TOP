@@ -1,6 +1,6 @@
 for seed in {1..5}
  do
- for n in 9 11
+ for n in 9 10 11 12
   do
   for e in 0.3 0.4
    do
@@ -14,7 +14,7 @@ for seed in {1..5}
 do
  for h in blind tunnel
   do
-   for n in 9 11
+   for n in 9 10 11 12
    do
     for e in 0.3 0.4
     do
@@ -39,13 +39,13 @@ do
  do
   for j in random nearest
   do
-   for n in 9 11
+   for n in 9 10 11 12
    do
     for e in 0.3 0.4
     do
      for k in 2 3
      do
-      for l in 1
+      for l in 1 2 3
       do
       FILE_NAME="random_n=${n}_e=${e}_s=${seed}_"
       ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}n${n}e${e}k${k}l${l}merge.out -c -u < data/${FILE_NAME}.in &
