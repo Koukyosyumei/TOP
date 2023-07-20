@@ -42,10 +42,6 @@ inline bool greedypartition_search(
       best_sumcard = satisfying_sumcard;
       best_sumcost = satisfying_sumcost;
       best_partitions = subsets;
-
-      // std::cout << "Best Cardinarity: " << best_sumcard << ", Best AVG Cost:
-      // "
-      //          << (float)best_sumcost / (float)best_sumcard << "\n";
     }
     if (valid_paritions) {
       if (!valid_already_found) {
@@ -146,7 +142,8 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
     }
   }
 
-  // std::cout << graph->size() - 2 - unassigned.size() << " Nodes Removed\n";
+  logger.log_file << graph->size() - 2 - unassigned.size()
+                  << " Nodes Removed\n";
 
   int best_sumcard = 0;
   int best_sumcost = MAX_DIST;
@@ -157,10 +154,5 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
                          hf_type, k, el, complete_search, valid_found,
                          use_upperbound_cost, use_prune);
   logger.summary();
-  /*
-  std::cout << "- Number of Anonymized Paths: " << best_sumcard << "\n";
-  std::cout << "- Average Cost of Anonymized Paths: "
-            << (float)best_sumcost / (float)best_sumcard << "\n";
-            */
   return best_partitions;
 }
