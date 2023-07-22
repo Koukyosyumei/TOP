@@ -63,7 +63,7 @@ if __name__ == "__main__":
         if len(lines) == i + 1:
             continue
 
-        if (len(times_log) > 0):
+        if len(times_log) > 0:
             df_time_single = pd.DataFrame(times_log)
             df_time_single.columns = [
                 "path",

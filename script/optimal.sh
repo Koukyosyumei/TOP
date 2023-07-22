@@ -10,7 +10,7 @@ for seed in 1 2 3 4 5
    python3 script/random_graph_generator.py -t gnp -n 13 -e 0.3 -s $seed > data/${FILE_NAME}.in
 done
 
-for seed in 1
+for seed in 1 2 3 4 5
 do
 FILE_NAMEG="t=grid_n=4_e=0.3_s=${seed}_"
 FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
@@ -29,6 +29,26 @@ FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
     done
    done
    echo "h=$h j=$j seed=${seed}" & wait
+  done
+ done
+done
+
+for seed in 1 2 3 4 5
+do
+FILE_NAMEG="t=grid_n=4_e=0.3_s=${seed}_"
+FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
+FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
+ for h in blind tunnel
+ do
+   for k in 2 3
+   do
+    for l in 1 2 3
+    do
+    ./topsolver -k $k -l $l -p greedy -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEG}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEG}.in &
+    ./topsolver -k $k -l $l -p greedy -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEI}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEI}.in &
+    ./topsolver -k $k -l $l -p greedy -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMER}k${k}l${l}greedy.out -c -u < data/${FILE_NAMER}.in &
+    done
+   echo "h=$h seed=${seed}" & wait
   done
  done
 done

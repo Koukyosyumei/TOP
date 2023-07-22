@@ -48,24 +48,27 @@ def grid_to_graph(grid):
     def node_id(row, col):
         return row * cols + col
 
+    for i in range(rows * cols):
+        graph.add_node(i)
+
     for row in range(rows):
         for col in range(cols):
-            if grid[row][col] != '#':
-                graph.add_node(node_id(row, col))
+            if grid[row][col] == obstacle:
+                continue
 
-                if grid[row][col] == 'S':
-                    start_node = node_id(row, col)
-                elif grid[row][col] == 'G':
-                    goal_node = node_id(row, col)
+            if grid[row][col] == "S":
+                start_node = node_id(row, col)
+            elif grid[row][col] == "G":
+                goal_node = node_id(row, col)
 
-                if is_valid_cell(grid, row - 1, col):  # Check the cell above
-                    graph.add_edge(node_id(row, col), node_id(row - 1, col))
-                if is_valid_cell(grid, row + 1, col):  # Check the cell below
-                    graph.add_edge(node_id(row, col), node_id(row + 1, col))
-                if is_valid_cell(grid, row, col - 1):  # Check the cell to the left
-                    graph.add_edge(node_id(row, col), node_id(row, col - 1))
-                if is_valid_cell(grid, row, col + 1):  # Check the cell to the right
-                    graph.add_edge(node_id(row, col), node_id(row, col + 1))
+            if is_valid_cell(grid, row - 1, col):  # Check the cell above
+                graph.add_edge(node_id(row, col), node_id(row - 1, col))
+            if is_valid_cell(grid, row + 1, col):  # Check the cell below
+                graph.add_edge(node_id(row, col), node_id(row + 1, col))
+            if is_valid_cell(grid, row, col - 1):  # Check the cell to the left
+                graph.add_edge(node_id(row, col), node_id(row, col - 1))
+            if is_valid_cell(grid, row, col + 1):  # Check the cell to the right
+                graph.add_edge(node_id(row, col), node_id(row, col + 1))
 
     return graph, start_node, goal_node
 
@@ -90,12 +93,7 @@ def print_out_networkx_graph(G, source_goal=None):
 
 
 def add_args(parser):
-    parser.add_argument(
-        "-t",
-        "--gtype",
-        default="grid",
-        type=str
-    )
+    parser.add_argument("-t", "--gtype", default="grid", type=str)
     parser.add_argument(
         "-n",
         "--graph_size",
@@ -154,8 +152,7 @@ if __name__ == "__main__":
     elif parsed_args.gtype == "sudoku":
         G = nx.sudoku_graph(graph_size)
     elif parsed_args.gtype == "grid":
-        grid = generate_grid_world(
-            graph_size, graph_size, parsed_args.obstacle_frac)
+        grid = generate_grid_world(graph_size, graph_size, parsed_args.obstacle_frac)
         G, source, goal = grid_to_graph(grid)
         source_and_goal = (source, goal)
 
