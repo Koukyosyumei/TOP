@@ -1,4 +1,4 @@
-for seed in {1..5}
+for seed in 1 2 3 4 5
  do
    FILE_NAME="t=grid_n=4_e=0.3_s=${seed}_"
    python3 script/random_graph_generator.py -t grid -n 4 -o 0.3 -s $seed > data/${FILE_NAME}.in
@@ -20,12 +20,12 @@ do
    do
     for l in 1 2 3
     do
-    FILE_NAME="t=grid_n=4_e=0.3_s=${seed}_"
-    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}k${k}l${l}merge.out -c -u < data/${FILE_NAME}.in &
-    FILE_NAME="t=internet_n=13_e=1.0_s=${seed}_"
-    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}k${k}l${l}merge.out -c -u < data/${FILE_NAME}.in &
-    FILE_NAME="t=gnp_n=13_e=0.3_s=${seed}_"
-    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAME}k${k}l${l}merge.out -c -u < data/${FILE_NAME}.in &
+    FILE_NAMEG="t=grid_n=4_e=0.3_s=${seed}_"
+    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEG}k${k}l${l}merge.out -c -u < data/${FILE_NAMEG}.in &
+    FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
+    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEI}k${k}l${l}merge.out -c -u < data/${FILE_NAMEI}.in &
+    FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
+    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMER}k${k}l${l}merge.out -c -u < data/${FILE_NAMER}.in &
     done
     echo "h=$h j=$j seed=${seed}" & wait
    done
