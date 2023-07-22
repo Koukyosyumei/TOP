@@ -70,7 +70,7 @@ def grid_to_graph(grid):
     return graph, start_node, goal_node
 
 
-def print_out_networkx_graph(G):
+def print_out_networkx_graph(G, source_goal=None):
     num_nodes = len(G.nodes)
     edges = list(G.edges)
     if is_directed:
@@ -83,7 +83,8 @@ def print_out_networkx_graph(G):
         if not is_directed:
             print(e[1], e[0], w)
 
-    source_goal = random.sample(list(range(num_nodes)), 2)
+    if source_goal is None:
+        source_goal = random.sample(list(range(num_nodes)), 2)
     print(source_goal[0], source_goal[1])
     pass
 
@@ -91,7 +92,7 @@ def print_out_networkx_graph(G):
 def add_args(parser):
     parser.add_argument(
         "-t",
-        "--type",
+        "--gtype",
         default="grid",
         type=str
     )
@@ -142,17 +143,20 @@ if __name__ == "__main__":
     random.seed(seed)
 
     G = nx.Graph()
-    if parsed_args.type == "gnp":
+    source_and_goal = None
+
+    if parsed_args.gtype == "gnp":
         G = nx.random_graphs.fast_gnp_random_graph(
             graph_size, edges_fraction, seed, directed=is_directed
         )
-    elif parsed_args == "internet":
+    elif parsed_args.gtype == "internet":
         G = nx.random_internet_as_graph(graph_size)
-    elif parsed_args == "sudoku":
+    elif parsed_args.gtype == "sudoku":
         G = nx.sudoku_graph(graph_size)
-    elif parsed_args == "grid":
+    elif parsed_args.gtype == "grid":
         grid = generate_grid_world(
             graph_size, graph_size, parsed_args.obstacle_frac)
-        G = grid_to_graph(grid)
+        G, source, goal = grid_to_graph(grid)
+        source_and_goal = (source, goal)
 
-    print_out_networkx_graph(G)
+    print_out_networkx_graph(G, source_and_goal)
