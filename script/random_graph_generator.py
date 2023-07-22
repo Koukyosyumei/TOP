@@ -53,19 +53,19 @@ def grid_to_graph(grid):
             if grid[row][col] != '#':
                 graph.add_node(node_id(row, col))
 
-            if grid[row][col] == 'S':
-                start_node = node_id(row, col)
-            elif grid[row][col] == 'G':
-                goal_node = node_id(row, col)
+                if grid[row][col] == 'S':
+                    start_node = node_id(row, col)
+                elif grid[row][col] == 'G':
+                    goal_node = node_id(row, col)
 
-            if is_valid_cell(grid, row - 1, col):  # Check the cell above
-                graph.add_edge(node_id(row, col), node_id(row - 1, col))
-            if is_valid_cell(grid, row + 1, col):  # Check the cell below
-                graph.add_edge(node_id(row, col), node_id(row + 1, col))
-            if is_valid_cell(grid, row, col - 1):  # Check the cell to the left
-                graph.add_edge(node_id(row, col), node_id(row, col - 1))
-            if is_valid_cell(grid, row, col + 1):  # Check the cell to the right
-                graph.add_edge(node_id(row, col), node_id(row, col + 1))
+                if is_valid_cell(grid, row - 1, col):  # Check the cell above
+                    graph.add_edge(node_id(row, col), node_id(row - 1, col))
+                if is_valid_cell(grid, row + 1, col):  # Check the cell below
+                    graph.add_edge(node_id(row, col), node_id(row + 1, col))
+                if is_valid_cell(grid, row, col - 1):  # Check the cell to the left
+                    graph.add_edge(node_id(row, col), node_id(row, col - 1))
+                if is_valid_cell(grid, row, col + 1):  # Check the cell to the right
+                    graph.add_edge(node_id(row, col), node_id(row, col + 1))
 
     return graph, start_node, goal_node
 

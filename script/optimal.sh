@@ -12,6 +12,9 @@ done
 
 for seed in 1
 do
+FILE_NAMEG="t=grid_n=4_e=0.3_s=${seed}_"
+FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
+FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
  for h in blind tunnel
  do
   for j in random nearest
@@ -20,15 +23,12 @@ do
    do
     for l in 1 2 3
     do
-    FILE_NAMEG="t=grid_n=4_e=0.3_s=${seed}_"
     ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEG}k${k}l${l}merge.out -c -u < data/${FILE_NAMEG}.in &
-    FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
     ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEI}k${k}l${l}merge.out -c -u < data/${FILE_NAMEI}.in &
-    FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
     ./topsolver -k $k -l $l -p merge -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMER}k${k}l${l}merge.out -c -u < data/${FILE_NAMER}.in &
     done
-    echo "h=$h j=$j seed=${seed}" & wait
    done
+   echo "h=$h j=$j seed=${seed}" & wait
   done
  done
 done
