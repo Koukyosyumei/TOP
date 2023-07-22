@@ -42,6 +42,10 @@ inline bool greedypartition_search(
       best_sumcard = satisfying_sumcard;
       best_sumcost = satisfying_sumcost;
       best_partitions = subsets;
+
+      logger.sum_card = best_sumcard;
+      float best_avg_cost = (float)best_sumcost / (float)best_sumcard;
+      logger.avg_path_cost = best_avg_cost;
     }
     if (valid_paritions) {
       if (!valid_already_found) {
