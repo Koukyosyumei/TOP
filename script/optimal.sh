@@ -44,9 +44,9 @@ FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
    do
     for l in 1 2 3
     do
-    ./topsolver -k $k -l $l -p greedy -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEG}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEG}.in &
-    ./topsolver -k $k -l $l -p greedy -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMEI}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEI}.in &
-    ./topsolver -k $k -l $l -p greedy -h $h -j ${j} -f output/${h}-${j}$-${FILE_NAMER}k${k}l${l}greedy.out -c -u < data/${FILE_NAMER}.in &
+    ./topsolver -k $k -l $l -p greedy -h $h -f output/${h}-${FILE_NAMEG}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEG}.in &
+    ./topsolver -k $k -l $l -p greedy -h $h -f output/${h}-${FILE_NAMEI}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEI}.in &
+    ./topsolver -k $k -l $l -p greedy -h $h -f output/${h}-${FILE_NAMER}k${k}l${l}greedy.out -c -u < data/${FILE_NAMER}.in &
     done
    echo "h=$h seed=${seed}" & wait
   done
