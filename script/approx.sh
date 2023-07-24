@@ -28,26 +28,5 @@ for k in 2 3 5
  done
 done
 
-for k in 2 3 5
- do
- for el in 1 2 3
-  do
-  for h in blind tunnel
-   do
-   for j in random nearest
-    do
-    for seed in 1 2 3 4 5
-     do
-     FILE_NAMEI="t=internet_n=400_e=1.0_s=${seed}_"
-     ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t 20000 -f output/${k}-${el}-${h}-${j}${FILE_NAMEI}.out -c -u < data/${FILE_NAMEI}.in
-     FILE_NAMER="t=gnp_n=400_e=0.1_s=${seed}_"
-     ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t 20000 -f output/${k}-${el}-${h}-${j}${FILE_NAMER}.out -c -u < data/${FILE_NAMER}.in
-    done
-    echo ${k} ${el} ${h} ${j} & wait
-   done
-  done
- done
-done
-
 python3 script/report.py -d "output/*" -o approx_summary.csv -t approx_time.csv
 

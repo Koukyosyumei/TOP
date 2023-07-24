@@ -5,7 +5,7 @@ import networkx as nx
 
 goal = "G"
 start = "S"
-obstacle = "#"
+obstacle = "@"
 empty = "."
 
 
@@ -56,9 +56,9 @@ def grid_to_graph(grid):
             if grid[row][col] == obstacle:
                 continue
 
-            if grid[row][col] == "S":
+            if grid[row][col] == start:
                 start_node = node_id(row, col)
-            elif grid[row][col] == "G":
+            elif grid[row][col] == goal:
                 goal_node = node_id(row, col)
 
             if is_valid_cell(grid, row - 1, col):  # Check the cell above
@@ -71,6 +71,28 @@ def grid_to_graph(grid):
                 graph.add_edge(node_id(row, col), node_id(row, col + 1))
 
     return graph, start_node, goal_node
+
+
+def read_graph(path):
+    with open(path, mode="r") as f:
+        lines = f.readlines()
+        height = int(lines[1].split(" ")[1])
+        width = int(lines[2].split(" ")[1])
+        maps = [list(lin) for lin in lines[4:]]
+        maps[0] = maps[0][:-1]
+        while True:
+            start_x = random.randint(0, width - 1)
+            start_y = random.randint(0, height - 1)
+            goal_x = random.randint(0, width - 1)
+            goal_y = random.randint(0, height - 1)
+            if maps[start_y][start_x] == empty:
+                maps[start_y][start_x] = start
+            else:
+                continue
+            if maps[goal_y][goal_x] == empty:
+                maps[goal_y][goal_x] = goal
+                break
+    return maps
 
 
 def print_out_networkx_graph(G, source_goal=None):
@@ -94,6 +116,7 @@ def print_out_networkx_graph(G, source_goal=None):
 
 def add_args(parser):
     parser.add_argument("-t", "--gtype", default="grid", type=str)
+    parser.add_argument("-g", "--gridfile", type=str)
     parser.add_argument(
         "-n",
         "--graph_size",
@@ -152,7 +175,12 @@ if __name__ == "__main__":
     elif parsed_args.gtype == "sudoku":
         G = nx.sudoku_graph(graph_size)
     elif parsed_args.gtype == "grid":
-        grid = generate_grid_world(graph_size, graph_size, parsed_args.obstacle_frac)
+        grid = generate_grid_world(
+            graph_size, graph_size, parsed_args.obstacle_frac)
+        G, source, goal = grid_to_graph(grid)
+        source_and_goal = (source, goal)
+    elif parsed_args.gtype == "fgrid":
+        grid = read_graph(parsed_args.gridfile)
         G, source, goal = grid_to_graph(grid)
         source_and_goal = (source, goal)
 
