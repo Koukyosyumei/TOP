@@ -5,8 +5,8 @@ for seed in 1 2 3 4 5
    FILE_NAME="t=internet_n=400_e=1.0_s=${seed}_"
    python3 script/random_graph_generator.py -t internet -n 400 -s $seed > data/${FILE_NAME}.in
 
-   FILE_NAME="t=gnp_n=400_e=0.3_s=${seed}_"
-   python3 script/random_graph_generator.py -t gnp -n 400 -e 0.3 -s $seed > data/${FILE_NAME}.in
+   FILE_NAME="t=gnp_n=400_e=0.1_s=${seed}_"
+   python3 script/random_graph_generator.py -t gnp -n 400 -e 0.1 -s $seed > data/${FILE_NAME}.in
 done
 
 for k in 2 3 5
@@ -30,7 +30,7 @@ done
 
 for k in 2 3 5
  do
- for el in 5 10 30
+ for el in 1 2 3
   do
   for h in blind tunnel
    do
@@ -40,7 +40,7 @@ for k in 2 3 5
      do
      FILE_NAMEI="t=internet_n=400_e=1.0_s=${seed}_"
      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t 20000 -f output/${k}-${el}-${h}-${j}${FILE_NAMEI}.out -c -u < data/${FILE_NAMEI}.in
-     FILE_NAMER="t=gnp_n=400_e=0.3_s=${seed}_"
+     FILE_NAMER="t=gnp_n=400_e=0.1_s=${seed}_"
      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t 20000 -f output/${k}-${el}-${h}-${j}${FILE_NAMER}.out -c -u < data/${FILE_NAMER}.in
     done
     echo ${k} ${el} ${h} ${j} & wait
