@@ -89,21 +89,26 @@ int main(int argc, char *argv[]) {
   logger.log_file << ": p=" << partition_type << "\n";
   logger.log_file << ": r=" << r << "\n";
 
+  std::cout << "llll" << std::endl;
+
   int N, E, source, goal, a, b;
   float c;
   std::cin >> N >> E;
 
   std::vector<std::vector<int>> graph(N, std::vector<int>(N, MAX_DIST));
-
+  std::cout << N << " " << E << std::endl;
   for (int i = 0; i < E; i++) {
     std::cin >> a >> b >> c;
     graph[a][b] = c;
   }
+  std::cout << "rrr" << std::endl;
   std::cin >> source >> goal;
+  std::cout << "load" << std::endl;
   logger.log_file << " Input Loading Completed\n";
 
   std::vector<std::vector<int>> asaplookup = get_asaplookup(graph);
   logger.log_file << " ASAP Table Calculation Completed\n";
+   std::cout << "aap " << std::endl;
 
   VisibilityFunc *vf;
   if (vf_type == "identity") {

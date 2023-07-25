@@ -2,19 +2,11 @@ for seed in 1 2 3 4 5
  do
    FILE_NAME="t=grid_n=5_e=0.3_s=${seed}_"
    python3 script/random_graph_generator.py -t grid -n 5 -o 0.3 -s $seed > data/${FILE_NAME}.in
-
-   # FILE_NAME="t=internet_n=13_e=1.0_s=${seed}_"
-   # python3 script/random_graph_generator.py -t internet -n 13 -s $seed > data/${FILE_NAME}.in
-
-   # FILE_NAME="t=gnp_n=13_e=0.3_s=${seed}_"
-   # python3 script/random_graph_generator.py -t gnp -n 13 -e 0.3 -s $seed > data/${FILE_NAME}.in
 done
 
 for seed in 1 2 3 4 5
 do
 FILE_NAMEG="t=grid_n=5_e=0.3_s=${seed}_"
-# FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
-# FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
  for h in blind tunnel
  do
   for j in random nearest
@@ -36,8 +28,6 @@ done
 for seed in 1 2 3 4 5
 do
 FILE_NAMEG="t=grid_n=5_e=0.3_s=${seed}_"
-# FILE_NAMEI="t=internet_n=13_e=1.0_s=${seed}_"
-# FILE_NAMER="t=gnp_n=13_e=0.3_s=${seed}_"
  for h in blind tunnel
  do
    for k in 2 3
