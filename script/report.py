@@ -24,13 +24,15 @@ if __name__ == "__main__":
     df_times_logs = []
     for path in glob.glob(parsed_args.dir):
         matches = re.findall(r"=(.*?)_", path)
+        gtype = "null"
         n = -1
         ep = -1
         s = -1
-        if len(matches) >= 3:
-            n = matches[0]
-            ep = matches[1]
-            s = matches[2]
+        if len(matches) >= 4:
+            gtype = matches[0]
+            n = matches[1]
+            ep = matches[2]
+            s = matches[3]
 
         with open(path, mode="r") as f:
             lines = f.readlines()
@@ -61,7 +63,7 @@ if __name__ == "__main__":
         if len(lines) == i + 1:
             continue
 
-        if (len(times_log) > 0):
+        if len(times_log) > 0:
             df_time_single = pd.DataFrame(times_log)
             df_time_single.columns = [
                 "path",
@@ -91,6 +93,7 @@ if __name__ == "__main__":
         rows.append(
             [
                 path,
+                gtype,
                 n,
                 ep,
                 s,
@@ -120,6 +123,7 @@ if __name__ == "__main__":
     df = pd.DataFrame(rows)
     df.columns = [
         "path",
+        "graph_type",
         "num_nodes",
         "probability_of_edge",
         "seed",
