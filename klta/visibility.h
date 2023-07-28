@@ -5,7 +5,6 @@
 #include <iostream>
 #include <queue>
 #include <string>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -14,6 +13,7 @@
 #include "utils.h"
 
 using phmap::flat_hash_set;
+using phmap::flat_hash_map;
 
 struct VisibilityFunc {
   std::vector<std::vector<int>> graph;
@@ -35,8 +35,8 @@ struct IdentityVF : public VisibilityFunc {
 
 struct RadiusVF : public VisibilityFunc {
   int radius;
-  std::unordered_map<int, std::vector<int>> cache_av;
-  std::unordered_map<int, std::vector<int>> cache_aw;
+  flat_hash_map<int, std::vector<int>> cache_av;
+  flat_hash_map<int, std::vector<int>> cache_aw;
   RadiusVF(int radius_, std::vector<std::vector<int>> &graph_,
            std::vector<std::vector<int>> &asaplookup_)
       : radius(radius_), VisibilityFunc(graph_, asaplookup_) {}
