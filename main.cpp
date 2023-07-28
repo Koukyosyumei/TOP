@@ -153,11 +153,14 @@ int main(int argc, char *argv[]) {
   float sum_dist_tmp = 0;
   float sum_card_tmp = 0;
   for (Partition &p : partitions) {
-    for (int i : p.elements) {
-      if ((i != source) && (i != goal) && (asaplookup[source][i] != MAX_DIST) &&
-          (asaplookup[i][goal] != MAX_DIST)) {
-        sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
-        sum_card_tmp++;
+    if (p.is_satisfying) {
+      for (int i : p.elements) {
+        if ((i != source) && (i != goal) &&
+            (asaplookup[source][i] != MAX_DIST) &&
+            (asaplookup[i][goal] != MAX_DIST)) {
+          sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
+          sum_card_tmp++;
+        }
       }
     }
   }
