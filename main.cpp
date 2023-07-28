@@ -94,7 +94,6 @@ int main(int argc, char *argv[]) {
   std::cin >> N >> E;
 
   std::vector<std::vector<int>> graph(N, std::vector<int>(N, MAX_DIST));
-
   for (int i = 0; i < E; i++) {
     std::cin >> a >> b >> c;
     graph[a][b] = c;
