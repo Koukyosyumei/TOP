@@ -146,6 +146,7 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
     }
   }
 
+  logger.tot_node_num = graph->size();
   logger.log_file << graph->size() - 2 - unassigned.size()
                   << " Nodes Removed\n";
 

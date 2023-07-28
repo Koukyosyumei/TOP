@@ -85,10 +85,11 @@ if __name__ == "__main__":
         num_evaluated_partitions_till_first = lines[i + 5].split(": ")[1]
         num_expanded_nodes_till_first = lines[i + 6].split(": ")[1]
         num_duplicated_partitions = lines[i + 7].split(": ")[1]
-        num_anonymized_paths = lines[i + 8].split(": ")[1]
-        avg_cost_anonymized_paths = lines[i + 9].split(": ")[1]
-        total_time = lines[i + 10].split(": ")[1].split(" [ms]")[0]
-        lowerbound_cost = lines[i + 11].split(": ")[1]
+        num_tot_paths = lines[i + 8].split(": ")[1]
+        num_anonymized_paths = lines[i + 9].split(": ")[1]
+        avg_cost_anonymized_paths = lines[i + 10].split(": ")[1]
+        total_time = lines[i + 11].split(": ")[1].split(" [ms]")[0]
+        lowerbound_cost = lines[i + 12].split(": ")[1]
 
         rows.append(
             [
@@ -110,6 +111,7 @@ if __name__ == "__main__":
                 num_valid_partitions,
                 num_skipped_partitions,
                 num_expanded_nodes,
+                num_tot_paths,
                 num_anonymized_paths,
                 num_evaluated_partitions_till_first,
                 num_expanded_nodes_till_first,
@@ -140,6 +142,7 @@ if __name__ == "__main__":
         "num_valid_partitions",
         "num_skipped_partitions",
         "num_expanded_nodes",
+        "num_tot_paths",
         "num_anonymized_paths",
         "num_evaluated_partitions_till_first",
         "num_expanded_nodes_till_first",
