@@ -5,6 +5,7 @@
 #include "klta/dfbbpartition.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
+#include "klta/parallel_hashmap/phmap.h"
 #include "klta/utils.h"
 #include "klta/visibility.h"
 #include <chrono>
@@ -131,21 +132,34 @@ int main(int argc, char *argv[]) {
   }
 
   logger.log_file << "Setup Completed\n";
+
+  Logger base_logger(verbose, timeout, "base_" + log_file_path);
+  HeuristicFuncBase *base_hf = new TunnelHeuristic(vf, asaplookup, goal);
+  flat_hash_map<int, int> dummy_map;
+  std::vector<Partition> base_partitions =
+      merge_df_bb(1, el, hf_type, j_order_type, source, goal, base_hf, vf,
+                  &graph, &asaplookup, complete_search, use_upperbound_cost,
+                  base_logger, dummy_map);
+  flat_hash_map<int, int> base_dist_map;
+  for (Partition &p : base_partitions) {
+    base_dist_map[p.elements[0]] = p.cost_of_cover_path;
+  }
+
   logger.log_file << "Optimal Partition Search Started\n";
   std::vector<Partition> partitions;
 
   if (partition_type == "merge") {
-    partitions =
-        merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
-                    &asaplookup, complete_search, use_upperbound_cost, logger);
+    partitions = merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf,
+                             &graph, &asaplookup, complete_search,
+                             use_upperbound_cost, logger, base_dist_map);
   } else if (partition_type == "greedy") {
-    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
-                                 vf, &graph, &asaplookup, complete_search,
-                                 use_upperbound_cost, logger, false);
+    partitions = greedypartition(
+        k, el, hf_type, j_order_type, source, goal, hf, vf, &graph, &asaplookup,
+        complete_search, use_upperbound_cost, logger, false, base_dist_map);
   } else if (partition_type == "greedy+") {
-    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
-                                 vf, &graph, &asaplookup, complete_search,
-                                 use_upperbound_cost, logger, true);
+    partitions = greedypartition(
+        k, el, hf_type, j_order_type, source, goal, hf, vf, &graph, &asaplookup,
+        complete_search, use_upperbound_cost, logger, true, base_dist_map);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
@@ -155,12 +169,8 @@ int main(int argc, char *argv[]) {
   for (Partition &p : partitions) {
     if (p.is_satisfying) {
       for (int i : p.elements) {
-        if ((i != source) && (i != goal) &&
-            (asaplookup[source][i] != MAX_DIST) &&
-            (asaplookup[i][goal] != MAX_DIST)) {
-          sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
-          sum_card_tmp++;
-        }
+        sum_dist_tmp += base_dist_map[i];
+        sum_card_tmp++;
       }
     }
   }
