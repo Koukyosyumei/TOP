@@ -52,12 +52,15 @@ if __name__ == "__main__":
             p = lines[8].split("=")[1]
             r = lines[9].split("=")[1]
 
+            removed_node_num = 0
             times_log = []
             for i, lin in enumerate(lines):
                 if "[ms]" in lin:
                     infos = lin.split(", ")
                     parsed_infos = [float(i.split(" ")[0]) for i in infos]
                     times_log.append([path] + parsed_infos)
+                if "Nodes Removed" in lin:
+                    removed_node_num = int(lin.split(" ")[0])
                 if "Performance Summary of DFBB" in lin:
                     break
 
@@ -87,6 +90,7 @@ if __name__ == "__main__":
             num_expanded_nodes_till_first = lines[i + 6].split(": ")[1]
             num_duplicated_partitions = lines[i + 7].split(": ")[1]
             num_tot_paths = lines[i + 8].split(": ")[1]
+            num_tot_paths = num_tot_paths - removed_node_num - 2
             num_anonymized_paths = lines[i + 9].split(": ")[1]
             avg_cost_anonymized_paths = lines[i + 10].split(": ")[1]
             total_time = lines[i + 11].split(": ")[1].split(" [ms]")[0]
