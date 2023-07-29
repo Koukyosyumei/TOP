@@ -33,7 +33,7 @@ inline bool greedypartition_search(
       satisfying_sumcost += p.elements.size() * p.cost_of_cover_path;
       for (int e : p.elements) {
         apc += ((float)p.cost_of_cover_path - (float)base_dist_map[e]) /
-               (float)p.cost_of_cover_path;
+               (float)base_dist_map[e];
       }
     } else {
       valid_paritions = false;

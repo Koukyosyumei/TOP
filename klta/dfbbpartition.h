@@ -101,7 +101,7 @@ inline bool merge_df_bb_search(
       if (!base_dist_map.empty()) {
         for (int e : p.elements) {
           apc += ((float)p.cost_of_cover_path - (float)base_dist_map[e]) /
-                 (float)p.cost_of_cover_path;
+                 (float)base_dist_map[e];
         }
       }
     } else {
