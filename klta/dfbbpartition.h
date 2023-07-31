@@ -12,7 +12,10 @@
 using phmap::flat_hash_map;
 using phmap::flat_hash_set;
 
-inline std::vector<size_t>
+#ifndef _AF
+inline
+#endif
+std::vector<size_t>
 orderofj(int i, std::string j_order_type, int sumcost,
          std::vector<Partition> &partitions,
          flat_hash_set<size_t> &checked_partitions, size_t hash_val,
@@ -63,13 +66,15 @@ orderofj(int i, std::string j_order_type, int sumcost,
   return j_order;
 }
 
-inline bool merge_df_bb_search(
+#ifndef _AF
+inline
+#endif
+bool merge_df_bb_search(
     std::string j_order_type, std::vector<Partition> &best_partitions,
     std::vector<Partition> &partitions,
     flat_hash_set<size_t> &checked_partitions, Logger &logger,
     int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
-    bool complete_search, bool &valid_already_found, bool use_upperbound_cost,
-    flat_hash_map<int, int> &base_dist_map) {
+    bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
 
   /*
   for (const Partition &p : partitions) {
@@ -92,18 +97,11 @@ inline bool merge_df_bb_search(
   int sumcost = 0;
   int satisfying_sumcard = 0;
   int satisfying_sumcost = 0;
-  float apc = 0;
   for (Partition p : partitions) {
     sumcost += p.elements.size() * p.cost_of_cover_path;
     if (p.is_satisfying) {
       satisfying_sumcard += p.elements.size();
       satisfying_sumcost += p.elements.size() * p.cost_of_cover_path;
-      if (!base_dist_map.empty()) {
-        for (int e : p.elements) {
-          apc += ((float)p.cost_of_cover_path - (float)base_dist_map[e]) /
-                 (float)base_dist_map[e];
-        }
-      }
     } else {
       valid_paritions = false;
     }
@@ -117,7 +115,10 @@ inline bool merge_df_bb_search(
     best_partitions = partitions;
 
     logger.sum_card = best_sumcard;
-    logger.avg_path_cost = apc / (float)best_sumcard;
+    float best_avg_cost = (float)best_sumcost / (float)best_sumcard;
+    logger.avg_path_cost = best_avg_cost;
+    // std::cout << "Best Cardinarity: " << best_sumcard
+    //          << ", Best AVG Cost: " << best_avg_cost << "\n";
   }
 
   if (valid_paritions) {
@@ -174,7 +175,7 @@ inline bool merge_df_bb_search(
       bool flag = merge_df_bb_search(
           j_order_type, best_partitions, next_partitions, checked_partitions,
           logger, best_sumcard, best_sumcost, hf_type, k, el, complete_search,
-          valid_already_found, use_upperbound_cost, base_dist_map);
+          valid_already_found, use_upperbound_cost);
       if (flag) {
         return true;
       }
@@ -184,13 +185,15 @@ inline bool merge_df_bb_search(
   return false;
 }
 
-inline std::vector<Partition>
+#ifndef _AF
+inline
+#endif
+std::vector<Partition>
 merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
             int source, int goal, HeuristicFuncBase *hfunc, VisibilityFunc *vf,
             std::vector<std::vector<int>> *graph,
             std::vector<std::vector<int>> *asaplookup, bool complete_search,
-            bool use_upperbound_cost, Logger &logger,
-            flat_hash_map<int, int> &base_dist_map) {
+            bool use_upperbound_cost, Logger &logger) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
   std::vector<Partition> partitions;
@@ -219,7 +222,6 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
     }
   }
 
-  logger.tot_node_num = graph->size();
   logger.log_file << graph->size() - 2 - partitions.size()
                   << " Nodes Removed\n";
 
@@ -227,10 +229,19 @@ merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
   int best_sumcost = MAX_DIST;
   bool valid_found = false;
   flat_hash_set<size_t> checked_partitions;
+#ifdef _MERGE2
+  std::string ij_order_type("random");
+  merge_df_bb_search2(ij_order_type, best_partitions, partitions,
+                     checked_partitions, logger, best_sumcard, best_sumcost,
+                     hf_type, k, el, complete_search, valid_found,
+                     use_upperbound_cost);
+#else
   merge_df_bb_search(j_order_type, best_partitions, partitions,
                      checked_partitions, logger, best_sumcard, best_sumcost,
                      hf_type, k, el, complete_search, valid_found,
-                     use_upperbound_cost, base_dist_map);
+                     use_upperbound_cost);
+  
+#endif
   logger.summary();
   return best_partitions;
 }

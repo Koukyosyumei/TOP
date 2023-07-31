@@ -1,11 +1,29 @@
 #include <unistd.h>
 
+#define _AF 1
+#define _HASH2 //XXX Important: _AF MUST be defined in order to use _HASH2
+#define _MERGE2 // alternate branching implementation for mergedfbb
+#ifdef _AF
+const int MAXPARTSIZE = 400;
+int N = 0;
+#else //Prevent other modifications by AF from being compiled if _AF is not defined. 
+#ifdef _HASH2
+#error "preprocessor def _AF must be defined in order to use _HASH2  !!"
+#endif 
+#ifdef _MERGE2
+#error "preprocessor def _AF must be defined in order to use _MERGE2  !!"
+#endif 
+#endif
+
+#include <cassert>
 #include "klta/asap.h"
 #include "klta/covering_search.h"
+#ifdef _MERGE2
+#include "klta/merge2.h"
+#endif
 #include "klta/dfbbpartition.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
-#include "klta/parallel_hashmap/phmap.h"
 #include "klta/utils.h"
 #include "klta/visibility.h"
 #include <chrono>
@@ -90,11 +108,22 @@ int main(int argc, char *argv[]) {
   logger.log_file << ": p=" << partition_type << "\n";
   logger.log_file << ": r=" << r << "\n";
 
+#ifdef _AF
+  int E, source, goal, a, b;
+#else
   int N, E, source, goal, a, b;
+#endif
   float c;
   std::cin >> N >> E;
-
+#ifdef _AF
+  if (N > MAXPARTSIZE) {
+    std::cout << "Error: N = " << N << " > " << "MAXPARTSIZE=" << MAXPARTSIZE << std::endl;
+    std::cout << "Must recompile with MAXPARTSIZE >= N" << std::endl;
+    exit(1);
+  }
+#endif
   std::vector<std::vector<int>> graph(N, std::vector<int>(N, MAX_DIST));
+
   for (int i = 0; i < E; i++) {
     std::cin >> a >> b >> c;
     graph[a][b] = c;
@@ -132,46 +161,32 @@ int main(int argc, char *argv[]) {
   }
 
   logger.log_file << "Setup Completed\n";
-
-  Logger base_logger(verbose, timeout, "base_" + log_file_path);
-  HeuristicFuncBase *base_hf = new TunnelHeuristic(vf, asaplookup, goal);
-  flat_hash_map<int, int> dummy_map;
-  std::vector<Partition> base_partitions =
-      merge_df_bb(1, el, hf_type, j_order_type, source, goal, base_hf, vf,
-                  &graph, &asaplookup, complete_search, use_upperbound_cost,
-                  base_logger, dummy_map);
-  flat_hash_map<int, int> base_dist_map;
-  for (Partition &p : base_partitions) {
-    base_dist_map[p.elements[0]] = p.cost_of_cover_path;
-  }
-
   logger.log_file << "Optimal Partition Search Started\n";
   std::vector<Partition> partitions;
 
   if (partition_type == "merge") {
-    partitions = merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf,
-                             &graph, &asaplookup, complete_search,
-                             use_upperbound_cost, logger, base_dist_map);
+    partitions =
+        merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
+                    &asaplookup, complete_search, use_upperbound_cost, logger);
   } else if (partition_type == "greedy") {
-    partitions = greedypartition(
-        k, el, hf_type, j_order_type, source, goal, hf, vf, &graph, &asaplookup,
-        complete_search, use_upperbound_cost, logger, false, base_dist_map);
+    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
+                                 vf, &graph, &asaplookup, complete_search,
+                                 use_upperbound_cost, logger, false);
   } else if (partition_type == "greedy+") {
-    partitions = greedypartition(
-        k, el, hf_type, j_order_type, source, goal, hf, vf, &graph, &asaplookup,
-        complete_search, use_upperbound_cost, logger, true, base_dist_map);
+    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
+                                 vf, &graph, &asaplookup, complete_search,
+                                 use_upperbound_cost, logger, true);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
 
   float sum_dist_tmp = 0;
   float sum_card_tmp = 0;
-  for (Partition &p : partitions) {
-    if (p.is_satisfying) {
-      for (int i : p.elements) {
-        sum_dist_tmp += base_dist_map[i];
-        sum_card_tmp++;
-      }
+  for (int i = 0; i < N; i++) {
+    if ((i != source) && (i != goal) && (asaplookup[source][i] != MAX_DIST) &&
+        (asaplookup[i][goal] != MAX_DIST)) {
+      sum_dist_tmp += asaplookup[source][i] + asaplookup[i][goal];
+      sum_card_tmp++;
     }
   }
   logger.log_file << "- Lowerbound Cost of Anonnymized Paths: "

@@ -89,9 +89,17 @@ struct Partition {
   void print_cover_path(std::ofstream &log_file) {
     for (const Node &node : cover_path) {
       log_file << node.location << " ";
+#ifdef _AF
+      for (int p : elements) {
+	if (node.unseen[p] == 1) {
+	  log_file << p << " ";
+	}
+      }
+#else
       for (int p : node.unseen) {
         log_file << p << " ";
       }
+#endif
       log_file << std::endl;
     }
   }
@@ -128,7 +136,8 @@ struct Partition {
     }
 
     std::pair<int, std::vector<Node>> search_result =
-        search(hfunc, vf, source, goal, elements, upperbound_cost);
+      search(hfunc, vf, source, goal, elements, upperbound_cost);
+
     num_expanded_nodes = search_result.first;
     cover_path = search_result.second;
     is_cover_path_searched = true;
@@ -232,7 +241,6 @@ inline size_t hash_values_from_diff(size_t cur_hash_val, Partition &p_i,
 struct Logger {
   std::chrono::system_clock::time_point start_time, end_time;
   float verbose_interval, timeout;
-  long long tot_node_num = 0;
   long long sum_card = 0;
   float avg_path_cost = 0;
   float num_print_called = 1;
@@ -288,7 +296,6 @@ struct Logger {
              << num_expanded_node_till_first_solution << "\n";
     log_file << "- Number of Duplicated Partitions in Total: "
              << duplicated_count << "\n";
-    log_file << "- Number of Total Paths: " << tot_node_num << "\n";
     log_file << "- Number of Anonymized Paths: " << sum_card << "\n";
     log_file << "- Average Cost of Anonymized Paths: " << avg_path_cost << "\n";
     log_file << "- Time: "
