@@ -59,14 +59,14 @@ std::vector<std::tuple<float, size_t, size_t>> orderofij(
             h_ij *= -1;
           }
           h_ij += 0.1 * partitions[i].dist(partitions[j]);
-        } else if (ij_order_type == "+adacost") {
+        } else if (ij_order_type == "adacost-") {
           h_ij =
-              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
+              -partitions[i].cost_of_cover_path *
+                  partitions[i].elements.size() -
               partitions[j].cost_of_cover_path * partitions[j].elements.size();
           if (valid_already_found) {
             h_ij *= -1;
           }
-          h_ij = 0.1 * h_ij + partitions[i].dist(partitions[j]);
         }
 
         ij_order.push_back(std::tuple<float, size_t, size_t>(h_ij, i, j));
