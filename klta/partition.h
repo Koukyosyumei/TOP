@@ -91,9 +91,9 @@ struct Partition {
       log_file << node.location << " ";
 #ifdef _AF
       for (int p : elements) {
-	if (node.unseen[p] == 1) {
-	  log_file << p << " ";
-	}
+        if (node.unseen[p] == 1) {
+          log_file << p << " ";
+        }
       }
 #else
       for (int p : node.unseen) {
@@ -136,7 +136,7 @@ struct Partition {
     }
 
     std::pair<int, std::vector<Node>> search_result =
-      search(hfunc, vf, source, goal, elements, upperbound_cost);
+        search(hfunc, vf, source, goal, elements, upperbound_cost);
 
     num_expanded_nodes = search_result.first;
     cover_path = search_result.second;
@@ -256,10 +256,11 @@ struct Logger {
   std::ofstream log_file;
 
   Logger(float verbose_interval_, float timeout_, std::string log_file_path)
-      : start_time(std::chrono::system_clock::now()),
-        verbose_interval(verbose_interval_), timeout(timeout_) {
+      : verbose_interval(verbose_interval_), timeout(timeout_) {
     log_file.open(log_file_path, std::ios::out);
   }
+
+  void start_timer() { start_time = std::chrono::system_clock::now(); }
 
   bool print(bool force = false) {
     end_time = std::chrono::system_clock::now();

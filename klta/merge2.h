@@ -15,48 +15,46 @@
 using phmap::flat_hash_map;
 using phmap::flat_hash_set;
 
-
-std::vector<std::pair<size_t,size_t>>
-orderofij(std::string ij_order_type, int sumcost,
-         std::vector<Partition> &partitions,
-         flat_hash_set<size_t> &checked_partitions, size_t hash_val,
-         Logger &logger, int &best_sumcard, int &best_sumcost,
-         std::string hf_type, int k, int el, bool complete_search,
-         bool &valid_already_found, bool use_upperbound_cost) {
-  //std::vector<size_t> j_order;
-  std::vector<std::pair<size_t,size_t>> ij_order;  
+std::vector<std::pair<size_t, size_t>> orderofij(
+    std::string ij_order_type, int sumcost, std::vector<Partition> &partitions,
+    flat_hash_set<size_t> &checked_partitions, size_t hash_val, Logger &logger,
+    int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
+    bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
+  // std::vector<size_t> j_order;
+  std::vector<std::pair<size_t, size_t>> ij_order;
 
   int partitions_num = partitions.size();
 
-  for (int i= 0; i < partitions_num; i++) {
-    if (partitions[i].is_satisfying) //XXX moved from merge_df_bb_search
+  for (int i = 0; i < partitions_num; i++) {
+    if (partitions[i].is_satisfying) // XXX moved from merge_df_bb_search
       continue;
     for (int j = i + 1; j < partitions_num; j++) {
-      if (!is_prunable(partitions[i], partitions[j], sumcost, checked_partitions,
-		       hash_val, logger, best_sumcard, best_sumcost, hf_type, k,
-		       el, complete_search, valid_already_found,
-		       use_upperbound_cost)) {
-	ij_order.push_back(std::pair<size_t,size_t>(i,j));
+      if (!is_prunable(partitions[i], partitions[j], sumcost,
+                       checked_partitions, hash_val, logger, best_sumcard,
+                       best_sumcost, hf_type, k, el, complete_search,
+                       valid_already_found, use_upperbound_cost)) {
+        ij_order.push_back(std::pair<size_t, size_t>(i, j));
       }
     }
   }
   // sort ij_order   according to ij_order_type
   if (ij_order_type == "random") { // trivial random ordering
-    auto rng = std::default_random_engine {};    
-    std::shuffle(ij_order.begin(),ij_order.end(),rng);
+    auto rng = std::default_random_engine{};
+    std::shuffle(ij_order.begin(), ij_order.end(), rng);
   }
 
   return ij_order;
 }
 
-
-
-bool merge_df_bb_search2(
-    std::string ij_order_type, std::vector<Partition> &best_partitions,
-    std::vector<Partition> &partitions,
-    flat_hash_set<size_t> &checked_partitions, Logger &logger,
-    int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
-    bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
+bool merge_df_bb_search2(std::string ij_order_type,
+                         std::vector<Partition> &best_partitions,
+                         std::vector<Partition> &partitions,
+                         flat_hash_set<size_t> &checked_partitions,
+                         Logger &logger, int &best_sumcard, int &best_sumcost,
+                         std::string hf_type, int k, int el,
+                         bool complete_search, bool &valid_already_found,
+                         bool use_upperbound_cost,
+                         flat_hash_map<int, int> &base_dist_map) {
 
   /*
   for (const Partition &p : partitions) {
@@ -79,11 +77,18 @@ bool merge_df_bb_search2(
   int sumcost = 0;
   int satisfying_sumcard = 0;
   int satisfying_sumcost = 0;
+  float apc = 0;
   for (Partition p : partitions) {
     sumcost += p.elements.size() * p.cost_of_cover_path;
     if (p.is_satisfying) {
       satisfying_sumcard += p.elements.size();
       satisfying_sumcost += p.elements.size() * p.cost_of_cover_path;
+      if (!base_dist_map.empty()) {
+        for (int e : p.elements) {
+          apc += ((float)p.cost_of_cover_path - (float)base_dist_map[e]) /
+                 (float)base_dist_map[e];
+        }
+      }
     } else {
       valid_paritions = false;
     }
@@ -97,10 +102,7 @@ bool merge_df_bb_search2(
     best_partitions = partitions;
 
     logger.sum_card = best_sumcard;
-    float best_avg_cost = (float)best_sumcost / (float)best_sumcard;
-    logger.avg_path_cost = best_avg_cost;
-    // std::cout << "Best Cardinarity: " << best_sumcard
-    //          << ", Best AVG Cost: " << best_avg_cost << "\n";
+    logger.avg_path_cost = apc / (float)best_sumcard;
   }
 
   if (valid_paritions) {
@@ -121,39 +123,40 @@ bool merge_df_bb_search2(
 
   int partitions_num = partitions.size();
 
-  std::vector<std::pair<size_t,size_t>> ij_order = 
-    orderofij(ij_order_type, sumcost, partitions, checked_partitions,
-	      hash_val, logger, best_sumcard, best_sumcost, hf_type, k, el,
-	      complete_search, valid_already_found, use_upperbound_cost);
-  
-  for (std::pair<size_t,size_t> ij : ij_order) {
+  std::vector<std::pair<size_t, size_t>> ij_order =
+      orderofij(ij_order_type, sumcost, partitions, checked_partitions,
+                hash_val, logger, best_sumcard, best_sumcost, hf_type, k, el,
+                complete_search, valid_already_found, use_upperbound_cost);
+
+  for (std::pair<size_t, size_t> ij : ij_order) {
     int i = ij.first;
     int j = ij.second;
     Partition partition_i_j = partitions[i].merge(partitions[j], MAX_DIST);
-    
+
     logger.total_num_expanded_node += partition_i_j.num_expanded_nodes;
-    
+
     if (partition_i_j.cover_path.size() == 0) {
       logger.skipped_count++;
       continue;
     }
-    
+
     std::vector<Partition> next_partitions;
     if (!partition_i_j.is_satisfying) {
       next_partitions.push_back(partition_i_j);
     }
     for (int w = 0; w < partitions_num; w++) {
       if (w != i && w != j) {
-	next_partitions.push_back(partitions[w]);
-        }
+        next_partitions.push_back(partitions[w]);
+      }
     }
     if (partition_i_j.is_satisfying) {
       next_partitions.push_back(partition_i_j);
     }
-    
-    bool flag = merge_df_bb_search2(ij_order_type, best_partitions, next_partitions, checked_partitions,
-				    logger, best_sumcard, best_sumcost, hf_type, k, el, complete_search,
-				    valid_already_found, use_upperbound_cost);
+
+    bool flag = merge_df_bb_search2(
+        ij_order_type, best_partitions, next_partitions, checked_partitions,
+        logger, best_sumcard, best_sumcost, hf_type, k, el, complete_search,
+        valid_already_found, use_upperbound_cost, base_dist_map);
     if (flag) {
       return true;
     }
