@@ -220,6 +220,7 @@ inline
     }
   }
 
+  logger.tot_node_num = graph->size();
   logger.log_file << graph->size() - 2 - partitions.size()
                   << " Nodes Removed\n";
 
