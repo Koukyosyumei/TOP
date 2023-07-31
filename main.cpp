@@ -22,9 +22,9 @@ int N = 0;
 #ifdef _MERGE2
 #include "klta/merge2.h"
 #endif
-#include "klta/dfbbpartition.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
+#include "klta/mergebb.h"
 #include "klta/utils.h"
 #include "klta/visibility.h"
 #include <chrono>
@@ -167,6 +167,7 @@ int main(int argc, char *argv[]) {
   Logger base_logger(verbose, timeout, "base_" + log_file_path);
   HeuristicFuncBase *base_hf = new TunnelHeuristic(vf, asaplookup, goal);
   flat_hash_map<int, int> dummy_map;
+  base_logger.start_timer();
   std::vector<Partition> base_partitions =
       merge_df_bb(1, el, hf_type, j_order_type, source, goal, base_hf, vf,
                   &graph, &asaplookup, complete_search, use_upperbound_cost,
