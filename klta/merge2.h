@@ -131,7 +131,18 @@ bool merge_df_bb_search2(std::string ij_order_type,
   for (std::pair<size_t, size_t> ij : ij_order) {
     int i = ij.first;
     int j = ij.second;
-    Partition partition_i_j = partitions[i].merge(partitions[j], MAX_DIST);
+    int upperbound_cost = MAX_DIST;
+    if (valid_already_found && use_upperbound_cost) {
+      upperbound_cost = best_sumcost - (sumcost -
+                                        (int)partitions[i].elements.size() *
+                                            partitions[i].cost_of_cover_path -
+                                        (int)partitions[j].elements.size() *
+                                            partitions[j].cost_of_cover_path);
+      upperbound_cost /= ((int)partitions[i].elements.size() +
+                          (int)partitions[j].elements.size());
+    }
+    Partition partition_i_j =
+        partitions[i].merge(partitions[j], upperbound_cost);
 
     logger.total_num_expanded_node += partition_i_j.num_expanded_nodes;
 
