@@ -15,23 +15,22 @@
 #include "utils.h"
 #include "visibility.h"
 
-
 using phmap::flat_hash_map;
 
 inline Node make_root_node(VisibilityFunc *vf, int location_id,
                            std::vector<int> &target_elements) {
 #ifdef _AF
-  //int numunseen = 1;
+  // int numunseen = 1;
   int numunseen = 0;
   Unseen unseen;
-  /*for (int i =0; i < N; i++) { 
+  /*for (int i =0; i < N; i++) {
     unseen[i] = 0;
     }*/
   for (int i : target_elements) {
     unseen[i] = 1;
     numunseen++;
   }
-  
+
   std::vector<int> visible_points = vf->get_all_visible_points(location_id);
   for (int i : visible_points) {
     if (unseen[i] == 1) {
@@ -39,9 +38,11 @@ inline Node make_root_node(VisibilityFunc *vf, int location_id,
       numunseen--;
     }
   }
-  Node node = Node(location_id, unseen, numunseen, -1, 0, 0);    
+  Node node = Node(location_id, unseen, numunseen, -1, 0, 0);
 
-  if (1) { // unit test: check that unseen and numunseen are correctly sync'd (i.e., check that bitmap implementation and flat_hash_set impelementation would result in same number of unseen points)
+  if (1) { // unit test: check that unseen and numunseen are correctly sync'd
+           // (i.e., check that bitmap implementation and flat_hash_set
+           // impelementation would result in same number of unseen points)
     flat_hash_set<int> unseen;
     for (int i : target_elements) {
       unseen.insert(i);
@@ -49,12 +50,12 @@ inline Node make_root_node(VisibilityFunc *vf, int location_id,
     std::vector<int> visible_points = vf->get_all_visible_points(location_id);
     for (int i : visible_points) {
       if (unseen.find(i) != unseen.end()) {
-	unseen.erase(i);
+        unseen.erase(i);
       }
     }
-    //std::cout << " unseen.size = " << unseen.size() << std::endl;
-    //std::cout << " numunseen = " << numunseen << std::endl;
-    assert (unseen.size() == numunseen);
+    // std::cout << " unseen.size = " << unseen.size() << std::endl;
+    // std::cout << " numunseen = " << numunseen << std::endl;
+    assert(unseen.size() == numunseen);
   }
 
 #else
@@ -62,14 +63,14 @@ inline Node make_root_node(VisibilityFunc *vf, int location_id,
   for (int i : target_elements) {
     unseen.insert(i);
   }
-  
+
   std::vector<int> visible_points = vf->get_all_visible_points(location_id);
   for (int i : visible_points) {
     if (unseen.find(i) != unseen.end()) {
       unseen.erase(i);
     }
   }
-  Node node = Node(location_id, unseen, -1, 0, 0);  
+  Node node = Node(location_id, unseen, -1, 0, 0);
 #endif
 
   node.hash_value = hash_node(node);
@@ -79,8 +80,8 @@ inline Node make_root_node(VisibilityFunc *vf, int location_id,
 #ifndef _AF
 inline
 #endif
-std::vector<Node> make_children_nodes(VisibilityFunc *vf, Node node,
-                                             int parent_id) {
+    std::vector<Node>
+    make_children_nodes(VisibilityFunc *vf, Node node, int parent_id) {
   std::vector<Node> children;
 #ifndef _AF
   std::vector<int> visible_points;
@@ -95,8 +96,8 @@ std::vector<Node> make_children_nodes(VisibilityFunc *vf, Node node,
                         node.g + vf->graph[node.location][i], node.hash_value);
 #endif
 #ifdef _HASH2
-      child.hash_value ^= hashint(CURLOC_PREFIX*node.location);
-      child.hash_value ^= hashint(CURLOC_PREFIX*child.location);
+      child.hash_value ^= hashint(CURLOC_PREFIX * node.location);
+      child.hash_value ^= hashint(CURLOC_PREFIX * child.location);
 #else
       child.hash_value ^= std::hash<std::string>{}(
           CURLOC_PREFIX + std::to_string(node.location));
@@ -104,21 +105,22 @@ std::vector<Node> make_children_nodes(VisibilityFunc *vf, Node node,
           CURLOC_PREFIX + std::to_string(child.location));
 #endif
 #ifdef _AF
-      std::vector<int> &visible_points = vf->avp;      
-      int num_visible_points = vf->get_all_visible_points2(node.location,visible_points);
-      for (int i = 0; i< num_visible_points; i++ ) {
-	int p = visible_points[i];
-	if (child.unseen[p] == 1) {
-	  child.numunseen--;
+      std::vector<int> &visible_points = vf->avp;
+      int num_visible_points =
+          vf->get_all_visible_points2(node.location, visible_points);
+      for (int i = 0; i < num_visible_points; i++) {
+        int p = visible_points[i];
+        if (child.unseen[p] == 1) {
+          child.numunseen--;
           child.unseen[p] = 0;
 #ifdef _HASH2
-	  child.hash_value ^= hashint(p);
+          child.hash_value ^= hashint(p);
 #else
           child.hash_value ^= std::hash<std::string>{}(std::to_string(p));
 #endif
         }
       }
-#else      
+#else
       visible_points = vf->get_all_visible_points(node.location);
       for (int p : visible_points) {
         if (child.unseen.find(p) != child.unseen.end()) {
@@ -137,14 +139,15 @@ std::vector<Node> make_children_nodes(VisibilityFunc *vf, Node node,
 #ifndef _AF
 inline
 #endif
-std::pair<int, std::vector<Node>>
-search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
-       int goal_loc, std::vector<int> &target_elements, int upperbound_cost) {
+    std::pair<int, std::vector<Node>>
+    search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
+           int goal_loc, std::vector<int> &target_elements,
+           int upperbound_cost) {
   std::priority_queue<std::tuple<int, int, int>> queue;
   Node start = make_root_node(vf, start_loc, target_elements);
   std::vector<Node> nodes = {start};
 #ifdef _AF
-  int h = hfunc->calculate_hval(nodes[nodes.size() - 1],target_elements);
+  int h = hfunc->calculate_hval(nodes[nodes.size() - 1], target_elements);
 #else
   int h = hfunc->calculate_hval(nodes[nodes.size() - 1]);
 #endif
@@ -159,10 +162,12 @@ search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
   int iterations = 0;
   int expansions = 0;
   int skipped = 0;
+  int front_f = 0;
   while (!queue.empty()) {
     iterations++;
 
     front_status = queue.top();
+    front_f = -1 * std::get<0>(front_status);
     node_idx = std::get<2>(front_status);
     queue.pop();
 
@@ -170,20 +175,25 @@ search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
       expansions++;
       if (nodes[node_idx].location == goal_loc &&
 #ifdef _AF
-	  nodes[node_idx].numunseen == 0) {
+          nodes[node_idx].numunseen == 0) {
 #else
           nodes[node_idx].unseen.size() == 0) {
 #endif
         return std::make_pair(expansions, extract_solution(node_idx, nodes));
       }
 
+      // std::cout << front_h << " " << upperbound_cost << std::endl;
+      if (front_f > upperbound_cost) {
+        return {expansions, {}};
+      }
+
       children = make_children_nodes(vf, nodes[node_idx], node_idx);
       for (Node child : children) {
         nodes.emplace_back(child);
 #ifdef _AF
-        h = hfunc->calculate_hval(nodes[nodes.size() - 1],target_elements);
+        h = hfunc->calculate_hval(nodes[nodes.size() - 1], target_elements);
 #else
-	h = hfunc->calculate_hval(nodes[nodes.size() - 1]);
+        h = hfunc->calculate_hval(nodes[nodes.size() - 1]);
 #endif
         old_succ_g = MAX_DIST;
         succ_g = nodes[nodes.size() - 1].g;

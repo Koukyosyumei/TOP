@@ -228,8 +228,8 @@ inline
   bool valid_found = false;
   flat_hash_set<size_t> checked_partitions;
 #ifdef _MERGE2
-  std::string ij_order_type("random");
-  merge_df_bb_search2(ij_order_type, best_partitions, partitions,
+  // std::string ij_order_type("random");
+  merge_df_bb_search2(j_order_type, best_partitions, partitions,
                       checked_partitions, logger, best_sumcard, best_sumcost,
                       hf_type, k, el, complete_search, valid_found,
                       use_upperbound_cost, base_dist_map);
