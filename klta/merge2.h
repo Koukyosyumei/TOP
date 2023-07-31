@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <iostream>
 #include <numeric>
+#include <tuple>
 #include <vector>
 
 #include <algorithm>
@@ -15,13 +16,13 @@
 using phmap::flat_hash_map;
 using phmap::flat_hash_set;
 
-std::vector<std::pair<size_t, size_t>> orderofij(
+std::vector<std::tuple<float, size_t, size_t>> orderofij(
     std::string ij_order_type, int sumcost, std::vector<Partition> &partitions,
     flat_hash_set<size_t> &checked_partitions, size_t hash_val, Logger &logger,
     int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
     bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
   // std::vector<size_t> j_order;
-  std::vector<std::pair<size_t, size_t>> ij_order;
+  std::vector<std::tuple<float, size_t, size_t>> ij_order;
 
   int partitions_num = partitions.size();
 
@@ -33,7 +34,42 @@ std::vector<std::pair<size_t, size_t>> orderofij(
                        checked_partitions, hash_val, logger, best_sumcard,
                        best_sumcost, hf_type, k, el, complete_search,
                        valid_already_found, use_upperbound_cost)) {
-        ij_order.push_back(std::pair<size_t, size_t>(i, j));
+        float h_ij = 0;
+        if (ij_order_type == "asccost") {
+          h_ij =
+              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
+              partitions[j].cost_of_cover_path * partitions[j].elements.size();
+        } else if (ij_order_type == "deccost") {
+          h_ij =
+              -partitions[i].cost_of_cover_path *
+                  partitions[i].elements.size() -
+              partitions[j].cost_of_cover_path * partitions[j].elements.size();
+        } else if (ij_order_type == "adacost") {
+          h_ij =
+              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
+              partitions[j].cost_of_cover_path * partitions[j].elements.size();
+          if (valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adacost+") {
+          h_ij =
+              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
+              partitions[j].cost_of_cover_path * partitions[j].elements.size();
+          if (valid_already_found) {
+            h_ij *= -1;
+          }
+          h_ij += 0.1 * partitions[i].dist(partitions[j]);
+        } else if (ij_order_type == "+adacost") {
+          h_ij =
+              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
+              partitions[j].cost_of_cover_path * partitions[j].elements.size();
+          if (valid_already_found) {
+            h_ij *= -1;
+          }
+          h_ij = 0.1 * h_ij + partitions[i].dist(partitions[j]);
+        }
+
+        ij_order.push_back(std::tuple<float, size_t, size_t>(h_ij, i, j));
       }
     }
   }
@@ -41,6 +77,8 @@ std::vector<std::pair<size_t, size_t>> orderofij(
   if (ij_order_type == "random") { // trivial random ordering
     auto rng = std::default_random_engine{};
     std::shuffle(ij_order.begin(), ij_order.end(), rng);
+  } else {
+    std::sort(ij_order.begin(), ij_order.end());
   }
 
   return ij_order;
@@ -123,14 +161,14 @@ bool merge_df_bb_search2(std::string ij_order_type,
 
   int partitions_num = partitions.size();
 
-  std::vector<std::pair<size_t, size_t>> ij_order =
+  std::vector<std::tuple<float, size_t, size_t>> ij_order =
       orderofij(ij_order_type, sumcost, partitions, checked_partitions,
                 hash_val, logger, best_sumcard, best_sumcost, hf_type, k, el,
                 complete_search, valid_already_found, use_upperbound_cost);
 
-  for (std::pair<size_t, size_t> ij : ij_order) {
-    int i = ij.first;
-    int j = ij.second;
+  for (std::tuple<float, size_t, size_t> &ij : ij_order) {
+    int i = std::get<1>(ij);
+    int j = std::get<2>(ij);
     int upperbound_cost = MAX_DIST;
     if (valid_already_found && use_upperbound_cost) {
       upperbound_cost = best_sumcost - (sumcost -
