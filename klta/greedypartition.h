@@ -1,19 +1,24 @@
 #pragma once
 #include "covering_search.h"
-#include "parallel_hashmap/phmap.h"
 #include "partition.h"
 #include "utils.h"
-#include "visibility.h"
 #include <random>
 #include <vector>
 
-inline bool greedypartition_search(
-    std::string j_order_type, std::vector<Partition> &best_partitions,
-    std::vector<Partition> subsets, std::vector<Partition> unassigned,
-    flat_hash_set<size_t> &checked_partitions, Logger &logger,
-    int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
-    bool complete_search, bool &valid_already_found, bool use_upperbound_cost,
-    bool use_prune, flat_hash_map<int, int> &base_dist_map) {
+#ifndef _AF
+inline
+#endif
+    bool
+    greedypartition_search(std::string j_order_type,
+                           std::vector<Partition> &best_partitions,
+                           std::vector<Partition> subsets,
+                           std::vector<Partition> unassigned,
+                           flat_hash_set<size_t> &checked_partitions,
+                           Logger &logger, int &best_sumcard, int &best_sumcost,
+                           std::string hf_type, int k, int el,
+                           bool complete_search, bool &valid_already_found,
+                           bool use_upperbound_cost, bool use_prune,
+                           flat_hash_map<int, int> &base_dist_map) {
 
   size_t hash_val = hash_values_of_partitions(subsets);
   checked_partitions.insert(hash_val);
@@ -117,13 +122,18 @@ inline bool greedypartition_search(
   return false;
 }
 
-inline std::vector<Partition>
-greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
-                int source, int goal, HeuristicFuncBase *hfunc,
-                VisibilityFunc *vf, std::vector<std::vector<int>> *graph,
-                std::vector<std::vector<int>> *asaplookup, bool complete_search,
-                bool use_upperbound_cost, Logger &logger, bool use_prune,
-                flat_hash_map<int, int> &base_dist_map) {
+#ifndef _AF
+inline
+#endif
+    std::vector<Partition>
+    greedypartition(int k, int el, std::string hf_type,
+                    std::string j_order_type, int source, int goal,
+                    HeuristicFuncBase *hfunc, VisibilityFunc *vf,
+                    std::vector<std::vector<int>> *graph,
+                    std::vector<std::vector<int>> *asaplookup,
+                    bool complete_search, bool use_upperbound_cost,
+                    Logger &logger, bool use_prune,
+                    flat_hash_map<int, int> &base_dist_map) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
   std::vector<Partition> subsets;
@@ -153,7 +163,6 @@ greedypartition(int k, int el, std::string hf_type, std::string j_order_type,
     }
   }
 
-  logger.tot_node_num = graph->size();
   logger.log_file << graph->size() - 2 - unassigned.size()
                   << " Nodes Removed\n";
 
