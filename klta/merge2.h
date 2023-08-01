@@ -34,37 +34,48 @@ std::vector<std::tuple<float, size_t, size_t>> orderofij(
                        checked_partitions, hash_val, logger, best_sumcard,
                        best_sumcost, hf_type, k, el, complete_search,
                        valid_already_found, use_upperbound_cost)) {
-        float h_ij = 0;
-        if (ij_order_type == "asccost") {
-          h_ij =
-              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
-              partitions[j].cost_of_cover_path * partitions[j].elements.size();
-        } else if (ij_order_type == "deccost") {
-          h_ij =
-              -partitions[i].cost_of_cover_path *
-                  partitions[i].elements.size() -
-              partitions[j].cost_of_cover_path * partitions[j].elements.size();
-        } else if (ij_order_type == "adacost") {
-          h_ij =
-              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
-              partitions[j].cost_of_cover_path * partitions[j].elements.size();
-          if (valid_already_found) {
-            h_ij *= -1;
-          }
+        float h_ij =
+            std::max(partitions[i].cost_of_cover_path,
+                     partitions[j].cost_of_cover_path) *
+            (partitions[i].elements.size() + partitions[j].elements.size());
+        if (ij_order_type == "deccost") {
+          h_ij *= -1;
         } else if (ij_order_type == "adacost+") {
-          h_ij =
-              partitions[i].cost_of_cover_path * partitions[i].elements.size() +
-              partitions[j].cost_of_cover_path * partitions[j].elements.size();
           if (valid_already_found) {
             h_ij *= -1;
           }
-          h_ij += 0.1 * partitions[i].dist(partitions[j]);
         } else if (ij_order_type == "adacost-") {
-          h_ij =
-              -partitions[i].cost_of_cover_path *
-                  partitions[i].elements.size() -
-              partitions[j].cost_of_cover_path * partitions[j].elements.size();
+          if (!valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adacostnear+") {
+          h_ij += 0.1 * partitions[i].dist(partitions[j]);
           if (valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adacostnear-") {
+          h_ij += 0.1 * partitions[i].dist(partitions[j]);
+          if (!valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adanearcost+") {
+          h_ij = h_ij * 0.1 + partitions[i].dist(partitions[j]);
+          if (valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adanearcost-") {
+          h_ij = h_ij * 0.1 + partitions[i].dist(partitions[j]);
+          if (!valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adanear+") {
+          h_ij = partitions[i].dist(partitions[j]);
+          if (valid_already_found) {
+            h_ij *= -1;
+          }
+        } else if (ij_order_type == "adanear-") {
+          h_ij = partitions[i].dist(partitions[j]);
+          if (!valid_already_found) {
             h_ij *= -1;
           }
         }

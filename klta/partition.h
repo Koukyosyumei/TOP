@@ -23,6 +23,7 @@ struct Partition {
   std::vector<std::vector<int>> *graph;
   std::vector<std::vector<int>> *asaplookup;
   std::vector<int> elements;
+  std::vector<int> centroids;
   std::vector<Node> cover_path;
   int num_expanded_nodes = 0;
   int cost_of_cover_path;
@@ -40,6 +41,7 @@ struct Partition {
       : k(k), el(el), source(source), goal(goal), hfunc(hfunc), vf(vf),
         graph(graph), asaplookup(asaplookup), elements(elements) {
     judge_path_covering_condition(upperbound_cost);
+    calculate_centroids();
   }
 
   size_t hash_value() {
@@ -49,6 +51,22 @@ struct Partition {
     }
 
     return result;
+  }
+
+  void calculate_centroids() {
+    int best_dist = MAX_DIST;
+    for (int i : elements) {
+      int tmp_dist = 0;
+      for (int j : elements) {
+        tmp_dist += asaplookup->at(i)[j];
+      }
+      if (tmp_dist < best_dist) {
+        centroids.clear();
+        centroids.push_back(i);
+      } else if (tmp_dist == best_dist) {
+        centroids.push_back(i);
+      }
+    }
   }
 
   void calculate_singleton_h_value() {
@@ -162,14 +180,15 @@ struct Partition {
     return par;
   }
 
-  int dist(const Partition &rhs) {
-    int dist = MAX_DIST;
-    for (int i : elements) {
-      for (int j : rhs.elements) {
-        dist = std::min(dist, asaplookup->at(i)[j]);
-        dist = std::min(dist, asaplookup->at(i)[j]);
+  float dist(const Partition &rhs) {
+    float dist = 0;
+    for (int i : centroids) {
+      for (int j : rhs.centroids) {
+        dist += (float)asaplookup->at(i)[j];
+        dist += (float)asaplookup->at(j)[i];
       }
     }
+    dist /= (2 * (float)(centroids.size() + rhs.centroids.size()));
     return dist;
   }
 
