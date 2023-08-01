@@ -89,7 +89,7 @@ if __name__ == "__main__":
             num_evaluated_partitions_till_first = lines[i + 5].split(": ")[1]
             num_expanded_nodes_till_first = lines[i + 6].split(": ")[1]
             num_duplicated_partitions = lines[i + 7].split(": ")[1]
-            num_tot_paths = lines[i + 8].split(": ")[1]
+            num_tot_paths = int(lines[i + 8].split(": ")[1])
             num_tot_paths = num_tot_paths - removed_node_num - 2
             num_anonymized_paths = lines[i + 9].split(": ")[1]
             avg_cost_anonymized_paths = lines[i + 10].split(": ")[1]

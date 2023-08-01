@@ -38,7 +38,12 @@ std::vector<std::tuple<float, size_t, size_t>> orderofij(
             std::max(partitions[i].cost_of_cover_path,
                      partitions[j].cost_of_cover_path) *
             (partitions[i].elements.size() + partitions[j].elements.size());
-        if (ij_order_type == "deccost") {
+        if (ij_order_type == "ascnear") {
+          h_ij = partitions[i].dist(partitions[j]);
+        } else if (ij_order_type == "decnear") {
+          h_ij = -1 * partitions[i].dist(partitions[j]);
+        }
+        else if (ij_order_type == "deccost") {
           h_ij *= -1;
         } else if (ij_order_type == "adacost+") {
           if (valid_already_found) {

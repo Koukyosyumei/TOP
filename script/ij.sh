@@ -11,7 +11,7 @@ do
 FILE_NAMEG="t=grid_n=5_e=0.4_s=${seed}_"
  for h in tunnel
  do
-  for j in "random" "adacost" "deccost" "adacost+" "adacost-" "adacostnear+" "adacostnear-" "adanearcost+" "adanearcost-"
+  for j in "random" "adacost" "asccost" "ascnear" "deccost" "decnear" "adacost+" "adacost-" "adacostnear+" "adacostnear-" "adanearcost+" "adanearcost-"
   do
    for k in 2 3
    do
