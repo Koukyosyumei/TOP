@@ -5,13 +5,13 @@ import networkx as nx
 
 goal = "G"
 start = "S"
-obstacle = "@"
+obstacle = ["@", "T"]
 empty = "."
 
 
 def is_valid_cell(grid, row, col):
     rows, cols = len(grid), len(grid[0])
-    return 0 <= row < rows and 0 <= col < cols and grid[row][col] != obstacle
+    return 0 <= row < rows and 0 <= col < cols and grid[row][col] not in obstacle
 
 
 def generate_grid_world(height, width, obstacle_prob):
@@ -35,7 +35,7 @@ def generate_grid_world(height, width, obstacle_prob):
             o_x = random.randint(0, height - 1)
             o_y = random.randint(0, width - 1)
             if grid[o_x][o_y] == empty:
-                grid[o_x][o_y] = obstacle
+                grid[o_x][o_y] = obstacle[0]
                 break
 
     return grid
@@ -53,7 +53,7 @@ def grid_to_graph(grid):
 
     for row in range(rows):
         for col in range(cols):
-            if grid[row][col] == obstacle:
+            if grid[row][col] in obstacle:
                 continue
 
             if grid[row][col] == start:
