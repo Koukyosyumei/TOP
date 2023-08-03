@@ -131,8 +131,8 @@ inline
                     HeuristicFuncBase *hfunc, VisibilityFunc *vf,
                     std::vector<std::vector<int>> *graph,
                     std::vector<std::vector<int>> *asaplookup,
-                    bool complete_search, bool use_upperbound_cost,
-                    Logger &logger, bool use_prune,
+                    std::vector<int> &transit_candidates, bool complete_search,
+                    bool use_upperbound_cost, Logger &logger, bool use_prune,
                     flat_hash_map<int, int> &base_dist_map) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
@@ -140,7 +140,7 @@ inline
   std::vector<Partition> unassigned;
 
   std::vector<int> visible_points_of_i;
-  for (int i = 0; i < N; i++) {
+  for (int i : transit_candidates) {
     if (i == source || i == goal) {
       continue;
     }
@@ -163,8 +163,8 @@ inline
     }
   }
 
-  logger.tot_node_num = graph->size();
-  logger.log_file << graph->size() - 2 - unassigned.size()
+  logger.tot_node_num = transit_candidates.size();
+  logger.log_file << transit_candidates.size() - 2 - unassigned.size()
                   << " Nodes Removed\n";
 
   int best_sumcard = 0;

@@ -95,7 +95,7 @@ def read_graph(path):
     return maps
 
 
-def print_out_networkx_graph(G, source_goal=None):
+def print_out_networkx_graph(G, transit_candidates, source_goal=None):
     num_nodes = len(G.nodes)
     edges = list(G.edges)
     if is_directed:
@@ -111,6 +111,11 @@ def print_out_networkx_graph(G, source_goal=None):
     if source_goal is None:
         source_goal = random.sample(list(range(num_nodes)), 2)
     print(source_goal[0], source_goal[1])
+
+    print(len(transit_candidates))
+    for t in transit_candidates:
+        print(t)
+
     pass
 
 
@@ -128,6 +133,12 @@ def add_args(parser):
         "--edges_fraction",
         default=0.3,
         type=float,
+    )
+    parser.add_argument(
+        "-c",
+        "--num_transit_candidates",
+        default=-1,
+        type=int
     )
     parser.add_argument(
         "-o",
@@ -184,4 +195,9 @@ if __name__ == "__main__":
         G, source, goal = grid_to_graph(grid)
         source_and_goal = (source, goal)
 
-    print_out_networkx_graph(G, source_and_goal)
+    if parsed_args.num_transit_candidates == -1:
+        transit_candidates = list(set(G.nodes) - set(source_and_goal))
+    else:
+        transit_candidates = random.sample(
+            list(G.nodes), parsed_args.num_transit_candidates)
+    print_out_networkx_graph(G, transit_candidates, source_and_goal)

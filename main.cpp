@@ -131,6 +131,14 @@ int main(int argc, char *argv[]) {
     graph[a][b] = c;
   }
   std::cin >> source >> goal;
+
+  int num_transit_candidates = 0;
+  std::cin >> num_transit_candidates;
+  std::vector<int> transit_candidates(num_transit_candidates);
+  for (int i = 0; i < num_transit_candidates; i++) {
+    std::cin >> transit_candidates[i];
+  }
+
   logger.log_file << " Input Loading Completed\n";
 
   std::vector<std::vector<int>> asaplookup = get_asaplookup(graph);
@@ -170,8 +178,8 @@ int main(int argc, char *argv[]) {
   base_logger.start_timer();
   std::vector<Partition> base_partitions =
       merge_df_bb(1, el, hf_type, j_order_type, source, goal, base_hf, vf,
-                  &graph, &asaplookup, complete_search, use_upperbound_cost,
-                  base_logger, dummy_map);
+                  &graph, &asaplookup, transit_candidates, complete_search,
+                  use_upperbound_cost, base_logger, dummy_map);
   flat_hash_map<int, int> base_dist_map;
   for (Partition &p : base_partitions) {
     base_dist_map[p.elements[0]] = p.cost_of_cover_path;
@@ -183,17 +191,20 @@ int main(int argc, char *argv[]) {
   logger.start_timer();
 
   if (partition_type == "merge") {
-    partitions = merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf,
-                             &graph, &asaplookup, complete_search,
-                             use_upperbound_cost, logger, base_dist_map);
+    partitions =
+        merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
+                    &asaplookup, transit_candidates, complete_search,
+                    use_upperbound_cost, logger, base_dist_map);
   } else if (partition_type == "greedy") {
-    partitions = greedypartition(
-        k, el, hf_type, j_order_type, source, goal, hf, vf, &graph, &asaplookup,
-        complete_search, use_upperbound_cost, logger, false, base_dist_map);
+    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
+                                 vf, &graph, &asaplookup, transit_candidates,
+                                 complete_search, use_upperbound_cost, logger,
+                                 false, base_dist_map);
   } else if (partition_type == "greedy+") {
-    partitions = greedypartition(
-        k, el, hf_type, j_order_type, source, goal, hf, vf, &graph, &asaplookup,
-        complete_search, use_upperbound_cost, logger, true, base_dist_map);
+    partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
+                                 vf, &graph, &asaplookup, transit_candidates,
+                                 complete_search, use_upperbound_cost, logger,
+                                 true, base_dist_map);
   } else {
     throw std::invalid_argument("Partition type should be merge/greedy");
   }
