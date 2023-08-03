@@ -4,7 +4,7 @@
 #define _HASH2  // XXX Important: _AF MUST be defined in order to use _HASH2
 #define _MERGE2 // alternate branching implementation for mergedfbb
 #ifdef _AF
-const int MAXPARTSIZE = 400;
+const int MAXPARTSIZE = 40000;
 int N = 0;
 #else // Prevent other modifications by AF from being compiled if _AF is not
       // defined.
@@ -195,18 +195,18 @@ int main(int argc, char *argv[]) {
         merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
                     &asaplookup, transit_candidates, complete_search,
                     use_upperbound_cost, logger, base_dist_map);
-  } else if (partition_type == "greedy") {
+  } else if (partition_type == "df") {
     partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
                                  vf, &graph, &asaplookup, transit_candidates,
                                  complete_search, use_upperbound_cost, logger,
                                  false, base_dist_map);
-  } else if (partition_type == "greedy+") {
+  } else if (partition_type == "df+") {
     partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
                                  vf, &graph, &asaplookup, transit_candidates,
                                  complete_search, use_upperbound_cost, logger,
                                  true, base_dist_map);
   } else {
-    throw std::invalid_argument("Partition type should be merge/greedy");
+    throw std::invalid_argument("Partition type should be merge/df/df+");
   }
 
   float sum_dist_tmp = 0;
