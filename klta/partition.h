@@ -20,7 +20,7 @@ struct Partition {
   int source, goal;
   HeuristicFuncBase *hfunc;
   VisibilityFunc *vf;
-  std::vector<std::vector<int>> *graph;
+  std::vector<std::vector<std::pair<int, int>>> *graph;
   std::vector<std::vector<int>> *asaplookup;
   std::vector<int> elements;
   std::vector<int> centroids;
@@ -35,7 +35,8 @@ struct Partition {
 
   Partition(){};
   Partition(int k, int el, int source, int goal, HeuristicFuncBase *hfunc,
-            VisibilityFunc *vf, std::vector<std::vector<int>> *graph,
+            VisibilityFunc *vf,
+            std::vector<std::vector<std::pair<int, int>>> *graph,
             std::vector<std::vector<int>> *asaplookup,
             std::vector<int> &elements, int upperbound_cost)
       : k(k), el(el), source(source), goal(goal), hfunc(hfunc), vf(vf),

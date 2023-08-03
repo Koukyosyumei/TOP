@@ -124,11 +124,11 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 #endif
-  std::vector<std::vector<int>> graph(N, std::vector<int>(N, MAX_DIST));
+  std::vector<std::vector<std::pair<int, int>>> graph(N);
 
   for (int i = 0; i < E; i++) {
     std::cin >> a >> b >> c;
-    graph[a][b] = c;
+    graph[a].emplace_back(std::make_pair(b, c));
   }
   std::cin >> source >> goal;
 
@@ -146,11 +146,11 @@ int main(int argc, char *argv[]) {
 
   VisibilityFunc *vf;
   if (vf_type == "identity") {
-    vf = new IdentityVF(graph, asaplookup);
+    vf = new IdentityVF(&graph, &asaplookup);
   } else if (vf_type == "onestep") {
-    vf = new OneStepVF(graph, asaplookup);
+    vf = new OneStepVF(&graph, &asaplookup);
   } else if (vf_type == "radius") {
-    vf = new RadiusVF(r, graph, asaplookup);
+    vf = new RadiusVF(r, &graph, &asaplookup);
   } else {
     throw std::invalid_argument(
         "Visibility function should be identity/onestep");
@@ -163,8 +163,6 @@ int main(int argc, char *argv[]) {
     hf = new TunnelHeuristic(vf, asaplookup, goal);
   } else if (hf_type == "tunnel+") {
     hf = new TunnelPlusHeuristic(vf, asaplookup, goal, el);
-  } else if (hf_type == "mst") {
-    hf = new MSTHeuristic(vf, asaplookup, goal);
   } else {
     throw std::invalid_argument(
         "Heuristic function should be blind/tunnel/tunelidentity/mst.");

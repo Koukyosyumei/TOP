@@ -188,7 +188,8 @@ inline
     std::vector<Partition>
     merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
                 int source, int goal, HeuristicFuncBase *hfunc,
-                VisibilityFunc *vf, std::vector<std::vector<int>> *graph,
+                VisibilityFunc *vf,
+                std::vector<std::vector<std::pair<int, int>>> *graph,
                 std::vector<std::vector<int>> *asaplookup,
                 std::vector<int> &transit_candidates, bool complete_search,
                 bool use_upperbound_cost, Logger &logger,
