@@ -48,8 +48,14 @@ def grid_to_graph(grid):
     def node_id(row, col):
         return row * cols + col
 
-    for i in range(rows * cols):
-        graph.add_node(i)
+    i = 0
+    node_id_map = {}
+    for row in range(rows):
+        for col in range(cols):
+            if grid[row][col] not in obstacle:
+                node_id_map[node_id(row, col)] = i
+                graph.add_node(i)
+                i += 1
 
     for row in range(rows):
         for col in range(cols):
@@ -57,19 +63,26 @@ def grid_to_graph(grid):
                 continue
 
             if grid[row][col] == start:
-                start_node = node_id(row, col)
+                start_node = node_id_map[node_id(row, col)]
             elif grid[row][col] == goal:
-                goal_node = node_id(row, col)
+                goal_node = node_id_map[node_id(row, col)]
 
             if is_valid_cell(grid, row - 1, col):  # Check the cell above
-                graph.add_edge(node_id(row, col), node_id(row - 1, col))
+                graph.add_edge(
+                    node_id_map[node_id(row, col)],
+                    node_id_map[node_id(row - 1, col)])
             if is_valid_cell(grid, row + 1, col):  # Check the cell below
-                graph.add_edge(node_id(row, col), node_id(row + 1, col))
+                graph.add_edge(
+                    node_id_map[node_id(row, col)],
+                    node_id_map[node_id(row + 1, col)])
             if is_valid_cell(grid, row, col - 1):  # Check the cell to the left
-                graph.add_edge(node_id(row, col), node_id(row, col - 1))
+                graph.add_edge(
+                    node_id_map[node_id(row, col)],
+                    node_id_map[node_id(row, col - 1)])
             if is_valid_cell(grid, row, col + 1):  # Check the cell to the right
-                graph.add_edge(node_id(row, col), node_id(row, col + 1))
-
+                graph.add_edge(
+                    node_id_map[node_id(row, col)],
+                    node_id_map[node_id(row, col + 1)])
     return graph, start_node, goal_node
 
 
@@ -196,8 +209,10 @@ if __name__ == "__main__":
         source_and_goal = (source, goal)
 
     if parsed_args.num_transit_candidates == -1:
-        transit_candidates = list(set(G.nodes) - set(source_and_goal))
+        transit_candidates = list(
+            set(G.nodes) - set(source_and_goal))
     else:
         transit_candidates = random.sample(
-            list(G.nodes), parsed_args.num_transit_candidates)
+            list(G.nodes),
+            parsed_args.num_transit_candidates)
     print_out_networkx_graph(G, transit_candidates, source_and_goal)
