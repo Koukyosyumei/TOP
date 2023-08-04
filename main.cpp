@@ -4,7 +4,7 @@
 #define _HASH2  // XXX Important: _AF MUST be defined in order to use _HASH2
 #define _MERGE2 // alternate branching implementation for mergedfbb
 #ifdef _AF
-const int MAXPARTSIZE = 40000;
+const int MAXPARTSIZE = 10000;
 int N = 0;
 #else // Prevent other modifications by AF from being compiled if _AF is not
       // defined.
@@ -170,17 +170,9 @@ int main(int argc, char *argv[]) {
 
   logger.log_file << "Setup Completed\n";
 
-  Logger base_logger(verbose, timeout, "base_" + log_file_path);
-  HeuristicFuncBase *base_hf = new TunnelHeuristic(vf, asaplookup, goal);
-  flat_hash_map<int, int> dummy_map;
-  base_logger.start_timer();
-  std::vector<Partition> base_partitions =
-      merge_df_bb(1, el, hf_type, j_order_type, source, goal, base_hf, vf,
-                  &graph, &asaplookup, transit_candidates, complete_search,
-                  use_upperbound_cost, base_logger, dummy_map);
   flat_hash_map<int, int> base_dist_map;
-  for (Partition &p : base_partitions) {
-    base_dist_map[p.elements[0]] = p.cost_of_cover_path;
+  for (int t: transit_candidates) {
+    base_dist_map[t] = asaplookup[source][t] + asaplookup[t][goal];
   }
 
   logger.log_file << "Optimal Partition Search Started\n";

@@ -164,7 +164,7 @@ inline
   }
 
   logger.tot_node_num = transit_candidates.size();
-  logger.log_file << transit_candidates.size() - 2 - unassigned.size()
+  logger.log_file << transit_candidates.size() - unassigned.size()
                   << " Nodes Removed\n";
 
   int best_sumcard = 0;
