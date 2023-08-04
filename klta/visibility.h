@@ -98,15 +98,44 @@ struct RadiusVF : public VisibilityFunc {
   }
 #ifdef _AF
   int get_all_visible_points2(int i, std::vector<int> &avp) {
-    assert(0);
-    avp[0] = i;
-    return 1;
-  } // dummy virtual
-  int get_all_watchers2(int i, std::vector<int> &avp) {
-    assert(0);
-    avp[0] = i;
-    return 1;
-  } // dummy virtual
+    avp.clear();
+
+    auto it = cache_av.find(i);
+    if (it != cache_av.end()) {
+      avp.reserve(it->second.size());
+      std::copy(it->second.begin(), it->second.end(), back_inserter(avp));
+      return avp.size();
+    }
+
+    for (std::pair<int, int> e : graph->at(i)) {
+      int j = e.first;
+      if (asaplookup->at(i)[j] <= radius) {
+        avp.emplace_back(j);
+      }
+    }
+    avp.emplace_back(i);
+    cache_av[i] = avp;
+    return avp.size();
+  }
+  int get_all_watchers2(int i, std::vector<int> &awp) {
+    awp.clear();
+    auto it = cache_aw.find(i);
+    if (it != cache_aw.end()) {
+      awp.reserve(it->second.size());
+      std::copy(it->second.begin(), it->second.end(), std::back_inserter(awp));
+      return awp.size();
+    }
+
+    for (std::pair<int, int> e : graph->at(i)) {
+      int j = e.first;
+      if (asaplookup->at(j)[i] <= radius) {
+        awp.emplace_back(j);
+      }
+    }
+    awp.emplace_back(i);
+    cache_aw[i] = awp;
+    return awp.size();
+  }
 #endif
 };
 
