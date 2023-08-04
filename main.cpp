@@ -1,7 +1,7 @@
 #include <unistd.h>
 
 #define _AF 1
-#define _HASH2  // XXX Important: _AF MUST be defined in order to use _HASH2
+//#define _HASH2 // XXX Important: _AF MUST be defined in order to use _HASH2
 #define _MERGE2 // alternate branching implementation for mergedfbb
 #ifdef _AF
 const int MAXPARTSIZE = 10000;
@@ -171,8 +171,12 @@ int main(int argc, char *argv[]) {
   logger.log_file << "Setup Completed\n";
 
   flat_hash_map<int, int> base_dist_map;
-  for (int t: transit_candidates) {
-    base_dist_map[t] = asaplookup[source][t] + asaplookup[t][goal];
+  for (int t : transit_candidates) {
+    int dist = MAX_DIST;
+    for (int w : vf->get_all_watchers(t)) {
+      dist = std::min(dist, asaplookup[source][w] + asaplookup[w][goal]);
+    }
+    base_dist_map[t] = dist;
   }
 
   logger.log_file << "Optimal Partition Search Started\n";
