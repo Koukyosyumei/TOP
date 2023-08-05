@@ -32,7 +32,6 @@ inline
   float sum_ac = 0;
   float satisfying_mac = 0;
   for (Partition p : subsets) {
-    satisfying_nap += p.elements.size();
     if (p.is_satisfying) {
       satisfying_nap += p.elements.size();
       satisfying_mac += p.ac;

@@ -365,6 +365,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, float sum_ac,
   if (valid_already_found && use_upperbound_cost) {
     upperbound_ac = best_mac * (float)best_nap - (sum_ac - p_i.ac - p_j.ac);
 
+    /*
     int estimated_cost = 0;
     if (hf_type == "tunnel" || hf_type == "mst") {
       estimated_cost = std::max(p_i.h_to_unseen_max, p_j.h_to_unseen_max) +
@@ -376,15 +377,17 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, float sum_ac,
                        el * ((int)p_i.elements.size() +
                              (int)p_j.elements.size() - 1)) +
           std::min(p_i.h_to_goal, p_j.h_to_goal);
-    }
+    }*/
+
+    int estimated_cost = std::max(p_i.cost_of_cover_path, p_j.cost_of_cover_path);
     float lowerbound_ac = 0;
     for (int e : p_i.elements) {
       lowerbound_ac += ((float)estimated_cost - p_i.base_dist_map->at(e)) /
                        p_i.base_dist_map->at(e);
     }
     for (int e : p_j.elements) {
-      lowerbound_ac += ((float)estimated_cost - p_i.base_dist_map->at(e)) /
-                       p_i.base_dist_map->at(e);
+      lowerbound_ac += ((float)estimated_cost - p_j.base_dist_map->at(e)) /
+                       p_j.base_dist_map->at(e);
     }
 
     if (lowerbound_ac > upperbound_ac) {
