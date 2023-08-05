@@ -19,7 +19,7 @@ struct HeuristicFuncBase {
     goal = goal_;
   }
 #ifdef _AF
-  virtual int calculate_hval(Node &node,std::vector<int> &target_elements) = 0;
+  virtual int calculate_hval(Node &node, std::vector<int> &target_elements) = 0;
 #else
   virtual int calculate_hval(Node &node) = 0;
 #endif
@@ -30,9 +30,11 @@ struct BlindHeuristic : public HeuristicFuncBase {
                  std::vector<std::vector<int>> &asaplookup_, int goal_)
       : HeuristicFuncBase(vf_, asaplookup_, goal_) {}
 #ifdef _AF
-  int calculate_hval(Node &node,std::vector<int> &target_elements) { return 0; }
+  int calculate_hval(Node &node, std::vector<int> &target_elements) {
+    return 0;
+  }
 #else
-  int calculate_hval(Node &node) { return 0; }  
+  int calculate_hval(Node &node) { return 0; }
 #endif
 };
 
@@ -41,33 +43,33 @@ struct TunnelHeuristic : public HeuristicFuncBase {
                   std::vector<std::vector<int>> &asaplookup_, int goal_)
       : HeuristicFuncBase(vf_, asaplookup_, goal_) {}
 #ifdef _AF
-  int calculate_hval(Node &node, std::vector<int> &target_elements) {  
+  int calculate_hval(Node &node, std::vector<int> &target_elements){
 #else
   int calculate_hval(Node &node) {
 #endif
-    
+
 #ifdef _AF
-    if (node.numunseen == 0) {
-      return asaplookup[node.location][goal];
-    }    
-#else      
+      if (node.numunseen == 0) {
+        return asaplookup[node.location][goal];
+}
+#else
     if (node.unseen.size() == 0) {
       return asaplookup[node.location][goal];
     }
 #endif
-    int h_to_unseen = 0;
+int h_to_unseen = 0;
 #ifdef _AF
-    std::vector<int>& avp = vf->avp;
-    for (int p : target_elements) {    
-      if (node.unseen[p] == 1) {
-	int num_watchers = vf->get_all_watchers2(p,avp);
-	int tmp_min_h = MAX_DIST;
-	for (int i=0; i< num_watchers; i++) {
-	  tmp_min_h = std::min(tmp_min_h, asaplookup[node.location][avp[i]]);
-	}
-	h_to_unseen = std::max(tmp_min_h, h_to_unseen);
-      }
+std::vector<int> &avp = vf->avp;
+for (int p : target_elements) {
+  if (node.unseen[p] == 1) {
+    int num_watchers = vf->get_all_watchers2(p, avp);
+    int tmp_min_h = MAX_DIST;
+    for (int i = 0; i < num_watchers; i++) {
+      tmp_min_h = std::min(tmp_min_h, asaplookup[node.location][avp[i]]);
     }
+    h_to_unseen = std::max(tmp_min_h, h_to_unseen);
+  }
+}
 #else
     std::vector<int> avp;
     for (int p : node.unseen) {
@@ -80,16 +82,16 @@ struct TunnelHeuristic : public HeuristicFuncBase {
       h_to_unseen = std::max(tmp_min_h, h_to_unseen);
     }
 #endif
-    int h_to_goal = MAX_DIST;
+int h_to_goal = MAX_DIST;
 #ifdef _AF
-    for (int p : target_elements) {          
-      if(node.unseen[p]==1) {
-	int num_watchers = vf->get_all_watchers2(p,avp);
-	for (int i=0; i< num_watchers; i++) {
-	  h_to_goal = std::min(h_to_goal, asaplookup[avp[i]][goal]);
-	}
-      }
+for (int p : target_elements) {
+  if (node.unseen[p] == 1) {
+    int num_watchers = vf->get_all_watchers2(p, avp);
+    for (int i = 0; i < num_watchers; i++) {
+      h_to_goal = std::min(h_to_goal, asaplookup[avp[i]][goal]);
     }
+  }
+}
 #else
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
@@ -98,9 +100,10 @@ struct TunnelHeuristic : public HeuristicFuncBase {
       }
     }
 #endif
-    return h_to_unseen + h_to_goal;
-  }
-};
+return h_to_unseen + h_to_goal;
+}
+}
+;
 
 struct TunnelPlusHeuristic : public HeuristicFuncBase {
   int el;
@@ -109,36 +112,36 @@ struct TunnelPlusHeuristic : public HeuristicFuncBase {
                       int el_)
       : HeuristicFuncBase(vf_, asaplookup_, goal_), el(el_) {}
 #ifdef _AF
-  int calculate_hval(Node &node, std::vector<int> &target_elements) {
+  int calculate_hval(Node &node, std::vector<int> &target_elements){
 #else
-  int calculate_hval(Node &node) {  
+  int calculate_hval(Node &node) {
 #endif
 
 #ifdef _AF
-    if (node.numunseen == 0) {
-      return asaplookup[node.location][goal];
-    }
+      if (node.numunseen == 0) {
+        return asaplookup[node.location][goal];
+}
 #else
     if (node.unseen.size() == 0) {
       return asaplookup[node.location][goal];
     }
 #endif
-    int h_to_unseen_min = MAX_DIST;
-    int h_to_unseen_max = 0;
-    std::vector<int> avp;
+int h_to_unseen_min = MAX_DIST;
+int h_to_unseen_max = 0;
+std::vector<int> avp;
 #ifdef _AF
-    for (int p : target_elements) {          
-      if (node.unseen[p]==1) {
-	avp = vf->get_all_watchers(p);
-	int tmp_min_h = MAX_DIST;
-	for (int q : avp) {
-	  int tmp_cost = asaplookup[node.location][q];
-	  tmp_min_h = std::min(tmp_min_h, tmp_cost);
-	}
-	h_to_unseen_min = std::min(tmp_min_h, h_to_unseen_min);
-	h_to_unseen_max = std::max(tmp_min_h, h_to_unseen_max);
-      }
+for (int p : target_elements) {
+  if (node.unseen[p] == 1) {
+    avp = vf->get_all_watchers(p);
+    int tmp_min_h = MAX_DIST;
+    for (int q : avp) {
+      int tmp_cost = asaplookup[node.location][q];
+      tmp_min_h = std::min(tmp_min_h, tmp_cost);
     }
+    h_to_unseen_min = std::min(tmp_min_h, h_to_unseen_min);
+    h_to_unseen_max = std::max(tmp_min_h, h_to_unseen_max);
+  }
+}
 #else
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
@@ -151,43 +154,45 @@ struct TunnelPlusHeuristic : public HeuristicFuncBase {
       h_to_unseen_max = std::max(tmp_min_h, h_to_unseen_max);
     }
 #endif
-    int h_to_goal = MAX_DIST;
+int h_to_goal = MAX_DIST;
 #ifdef _AF
-    for (int p : target_elements) {                
-      if(node.unseen[p] == 1) {
-	avp = vf->get_all_watchers(p);
-	for (int q : avp) {
-	  h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
-	}
-      }
+for (int p : target_elements) {
+  if (node.unseen[p] == 1) {
+    avp = vf->get_all_watchers(p);
+    for (int q : avp) {
+      h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
     }
+  }
+}
 #else
     for (int p : node.unseen) {
       avp = vf->get_all_watchers(p);
       for (int q : avp) {
         h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
       }
-    }      
+    }
 #endif
-    
+
 #ifdef _AF
-    return std::max(h_to_unseen_max,
-                    h_to_unseen_min + el * ((int)node.numunseen - 1)) +
-      h_to_goal;
+return std::max(h_to_unseen_max,
+                h_to_unseen_min + el * ((int)node.numunseen - 1)) +
+       h_to_goal;
 #else
     return std::max(h_to_unseen_max,
                     h_to_unseen_min + el * ((int)node.unseen.size() - 1)) +
-      h_to_goal;
+           h_to_goal;
 #endif
-  }
-};
+}
+}
+;
 
+/*
 struct MSTHeuristic : public HeuristicFuncBase {
   using HeuristicFuncBase::HeuristicFuncBase;
 #ifdef _AF
   int calculate_hval(Node &node, std::vector<int> &target_elements) {
 #else
-  int calculate_hval(Node &node) {  
+  int calculate_hval(Node &node) {
 #endif
 
 #ifdef _AF
@@ -234,12 +239,12 @@ struct MSTHeuristic : public HeuristicFuncBase {
     std::vector<int> avp;
     int h_to_goal = MAX_DIST;
 #ifdef _AF
-    for (int p : target_elements) {                    
+    for (int p : target_elements) {
       if(node.unseen[p]==1) {
-	avp = vf->get_all_watchers(p);
-	for (int q : avp) {
-	  h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
-	}
+        avp = vf->get_all_watchers(p);
+        for (int q : avp) {
+          h_to_goal = std::min(h_to_goal, asaplookup[q][goal]);
+        }
       }
     }
 #else
@@ -253,3 +258,4 @@ struct MSTHeuristic : public HeuristicFuncBase {
     return h_mst + h_to_goal;
   }
 };
+*/

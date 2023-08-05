@@ -11,7 +11,7 @@
 #include <vector>
 
 inline std::vector<std::vector<int>>
-get_asaplookup(std::vector<std::vector<int>> &graph) {
+get_asaplookup(std::vector<std::vector<std::pair<int, int>>> &graph) {
   int N = graph.size();
   std::vector<std::vector<int>> asaplookup(N, std::vector<int>(N, MAX_DIST));
   for (int i = 0; i < N; i++) {
@@ -29,12 +29,15 @@ get_asaplookup(std::vector<std::vector<int>> &graph) {
       }
       seen[i][v] = true;
 
-      for (int j = 0; j < N; j++) {
-        if ((i == j) || graph[v][j] == MAX_DIST) {
+      int j, c_vj;
+      for (const std::pair<int, int> &e : graph[v]) {
+        j = e.first;
+        c_vj = e.second;
+        if ((i == j) || c_vj == MAX_DIST) {
           continue;
         }
-        if (asaplookup[i][j] > asaplookup[i][v] + graph[v][j]) {
-          asaplookup[i][j] = asaplookup[i][v] + graph[v][j];
+        if (asaplookup[i][j] > asaplookup[i][v] + c_vj) {
+          asaplookup[i][j] = asaplookup[i][v] + c_vj;
           que.push({-1 * asaplookup[i][j], j});
         }
       }

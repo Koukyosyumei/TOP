@@ -86,14 +86,15 @@ inline
 #ifndef _AF
   std::vector<int> visible_points;
 #endif
-  for (int i = 0; i < vf->graph.size(); i++) {
-    if (i != node.location && vf->graph[node.location][i] != MAX_DIST) {
+  for (const std::pair<int, int> e : vf->graph->at(node.location)) {
+    int i = e.first;
+    int c = e.second;
+    if (i != node.location && c != MAX_DIST) {
 #ifdef _AF
-      Node child = Node(i, node.unseen, node.numunseen, parent_id,
-                        node.g + vf->graph[node.location][i], node.hash_value);
+      Node child = Node(i, node.unseen, node.numunseen, parent_id, node.g + c,
+                        node.hash_value);
 #else
-      Node child = Node(i, node.unseen, parent_id,
-                        node.g + vf->graph[node.location][i], node.hash_value);
+      Node child = Node(i, node.unseen, parent_id, node.g + c, node.hash_value);
 #endif
 #ifdef _HASH2
       child.hash_value ^= hashint(CURLOC_PREFIX * node.location);

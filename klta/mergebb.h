@@ -188,8 +188,10 @@ inline
     std::vector<Partition>
     merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
                 int source, int goal, HeuristicFuncBase *hfunc,
-                VisibilityFunc *vf, std::vector<std::vector<int>> *graph,
-                std::vector<std::vector<int>> *asaplookup, bool complete_search,
+                VisibilityFunc *vf,
+                std::vector<std::vector<std::pair<int, int>>> *graph,
+                std::vector<std::vector<int>> *asaplookup,
+                std::vector<int> &transit_candidates, bool complete_search,
                 bool use_upperbound_cost, Logger &logger,
                 flat_hash_map<int, int> &base_dist_map) {
   int N = graph->size();
@@ -197,7 +199,7 @@ inline
   std::vector<Partition> partitions;
 
   std::vector<int> visible_points_of_i;
-  for (int i = 0; i < N; i++) {
+  for (int i : transit_candidates) {
     if (i == source || i == goal) {
       continue;
     }
@@ -220,8 +222,8 @@ inline
     }
   }
 
-  logger.tot_node_num = graph->size();
-  logger.log_file << graph->size() - 2 - partitions.size()
+  logger.tot_node_num = transit_candidates.size();
+  logger.log_file << transit_candidates.size() - partitions.size()
                   << " Nodes Removed\n";
 
   int best_sumcard = 0;
