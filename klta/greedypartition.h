@@ -27,7 +27,6 @@ inline
   }
 
   bool valid_paritions = true;
-  int sumcost = 0;
   int satisfying_nap = 0;
   float sum_ac = 0;
   float satisfying_mac = 0;
@@ -79,20 +78,20 @@ inline
       Partition p_tmp = subsets[i];
 
       if (use_prune &&
-          is_prunable(subsets[i], picked, sumcost, checked_partitions, hash_val,
+          is_prunable(subsets[i], picked, sum_ac, checked_partitions, hash_val,
                       logger, best_nap, best_mac, hf_type, k, el,
-                      complete_search, valid_already_found, use_upperbound_cost,
-                      false)) {
+                      complete_search, valid_already_found, 
+                      use_upperbound_cost, false)) {
         continue;
       }
 
       subsets[i] = subsets[i].merge(picked, MAX_DIST);
       logger.total_num_expanded_node += subsets[i].num_expanded_nodes;
 
-      if (use_prune && subsets[i].cover_path.size() == 0) {
-        logger.skipped_count++;
-        continue;
-      }
+      //if (use_prune && subsets[i].cover_path.size() == 0) {
+      //  logger.skipped_count++;
+      //  continue;
+      //}
 
       bool flag = greedypartition_search(
           j_order_type, best_partitions, subsets, unassigned,

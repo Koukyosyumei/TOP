@@ -361,6 +361,7 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, float sum_ac,
     logger.skipped_count++;
     return true;
   }
+
   float upperbound_ac = (float)MAX_DIST;
   if (valid_already_found && use_upperbound_cost) {
     upperbound_ac = best_mac * (float)best_nap - (sum_ac - p_i.ac - p_j.ac);
@@ -382,12 +383,12 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, float sum_ac,
     int estimated_cost = std::max(p_i.cost_of_cover_path, p_j.cost_of_cover_path);
     float lowerbound_ac = 0;
     for (int e : p_i.elements) {
-      lowerbound_ac += ((float)estimated_cost - p_i.base_dist_map->at(e)) /
-                       p_i.base_dist_map->at(e);
+      lowerbound_ac += ((float)estimated_cost - (float)p_i.base_dist_map->at(e)) /
+                       (float)p_i.base_dist_map->at(e);
     }
     for (int e : p_j.elements) {
-      lowerbound_ac += ((float)estimated_cost - p_j.base_dist_map->at(e)) /
-                       p_j.base_dist_map->at(e);
+      lowerbound_ac += ((float)estimated_cost - (float)p_j.base_dist_map->at(e)) /
+                       (float)p_j.base_dist_map->at(e);
     }
 
     if (lowerbound_ac > upperbound_ac) {
