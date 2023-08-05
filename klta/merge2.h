@@ -17,9 +17,9 @@ using phmap::flat_hash_map;
 using phmap::flat_hash_set;
 
 std::vector<std::tuple<float, size_t, size_t>> orderofij(
-    std::string ij_order_type, int sumcost, std::vector<Partition> &partitions,
+    std::string ij_order_type, float sum_ac, std::vector<Partition> &partitions,
     flat_hash_set<size_t> &checked_partitions, size_t hash_val, Logger &logger,
-    int &best_sumcard, int &best_sumcost, std::string hf_type, int k, int el,
+    int &best_nap, float &best_mac, std::string hf_type, int k, int el,
     bool complete_search, bool &valid_already_found, bool use_upperbound_cost) {
   // std::vector<size_t> j_order;
   std::vector<std::tuple<float, size_t, size_t>> ij_order;
@@ -30,10 +30,10 @@ std::vector<std::tuple<float, size_t, size_t>> orderofij(
     if (partitions[i].is_satisfying) // XXX moved from merge_df_bb_search
       continue;
     for (int j = i + 1; j < partitions_num; j++) {
-      if (!is_prunable(partitions[i], partitions[j], sumcost,
-                       checked_partitions, hash_val, logger, best_sumcard,
-                       best_sumcost, hf_type, k, el, complete_search,
-                       valid_already_found, use_upperbound_cost)) {
+      if (!is_prunable(partitions[i], partitions[j], sum_ac, checked_partitions,
+                       hash_val, logger, best_nap, best_mac, hf_type, k, el,
+                       complete_search, valid_already_found,
+                       use_upperbound_cost)) {
         float h_ij =
             std::max(partitions[i].cost_of_cover_path,
                      partitions[j].cost_of_cover_path) *
@@ -103,21 +103,11 @@ bool merge_df_bb_search2(std::string ij_order_type,
                          std::vector<Partition> &best_partitions,
                          std::vector<Partition> &partitions,
                          flat_hash_set<size_t> &checked_partitions,
-                         Logger &logger, int &best_sumcard, int &best_sumcost,
+                         Logger &logger, int &best_nap, float &best_mac,
                          std::string hf_type, int k, int el,
                          bool complete_search, bool &valid_already_found,
                          bool use_upperbound_cost,
                          flat_hash_map<int, int> &base_dist_map) {
-
-  /*
-  for (const Partition &p : partitions) {
-    for (int i : p.elements) {
-      std::cout << i << " ";
-    }
-    std::cout << "|";
-  }
-  std::cout << std::endl;
-    */
 
   size_t hash_val = hash_values_of_partitions(partitions);
   checked_partitions.insert(hash_val);
@@ -128,34 +118,29 @@ bool merge_df_bb_search2(std::string ij_order_type,
 
   bool valid_paritions = true;
   int sumcost = 0;
-  int satisfying_sumcard = 0;
-  int satisfying_sumcost = 0;
-  float apc = 0;
+  int satisfying_nap = 0;
+  float sum_ac = 0;
+  float satisfying_mac = 0;
   for (Partition p : partitions) {
-    sumcost += p.elements.size() * p.cost_of_cover_path;
+    satisfying_nap += p.elements.size();
     if (p.is_satisfying) {
-      satisfying_sumcard += p.elements.size();
-      satisfying_sumcost += p.elements.size() * p.cost_of_cover_path;
-      if (!base_dist_map.empty()) {
-        for (int e : p.elements) {
-          apc += ((float)p.cost_of_cover_path - (float)base_dist_map[e]) /
-                 (float)base_dist_map[e];
-        }
-      }
+      satisfying_nap += p.elements.size();
+      satisfying_mac += p.ac;
     } else {
       valid_paritions = false;
     }
+    sum_ac += p.ac;
   }
+  satisfying_mac = satisfying_mac / (float)(satisfying_nap);
 
-  if (satisfying_sumcard > best_sumcard ||
-      (satisfying_sumcard == best_sumcard &&
-       satisfying_sumcost < best_sumcost)) {
-    best_sumcard = satisfying_sumcard;
-    best_sumcost = satisfying_sumcost;
+  if (satisfying_nap > best_nap ||
+      (satisfying_nap == best_nap && satisfying_mac < best_mac)) {
+    best_nap = satisfying_nap;
+    best_mac = satisfying_mac;
     best_partitions = partitions;
 
-    logger.sum_card = best_sumcard;
-    logger.avg_path_cost = apc / (float)best_sumcard;
+    logger.sum_card = best_nap;
+    logger.avg_path_cost = best_mac;
   }
 
   if (valid_paritions) {
@@ -170,7 +155,7 @@ bool merge_df_bb_search2(std::string ij_order_type,
   }
 
   if (partitions.size() == 1 ||
-      (valid_already_found && best_sumcost <= sumcost)) {
+      (valid_already_found && best_mac * (float)best_nap <= sum_ac)) {
     return false;
   }
 
@@ -178,22 +163,13 @@ bool merge_df_bb_search2(std::string ij_order_type,
 
   std::vector<std::tuple<float, size_t, size_t>> ij_order =
       orderofij(ij_order_type, sumcost, partitions, checked_partitions,
-                hash_val, logger, best_sumcard, best_sumcost, hf_type, k, el,
+                hash_val, logger, best_nap, best_mac, hf_type, k, el,
                 complete_search, valid_already_found, use_upperbound_cost);
 
   for (std::tuple<float, size_t, size_t> &ij : ij_order) {
     int i = std::get<1>(ij);
     int j = std::get<2>(ij);
     int upperbound_cost = MAX_DIST;
-    if (valid_already_found && use_upperbound_cost) {
-      upperbound_cost = best_sumcost - (sumcost -
-                                        (int)partitions[i].elements.size() *
-                                            partitions[i].cost_of_cover_path -
-                                        (int)partitions[j].elements.size() *
-                                            partitions[j].cost_of_cover_path);
-      upperbound_cost /= ((int)partitions[i].elements.size() +
-                          (int)partitions[j].elements.size());
-    }
     Partition partition_i_j =
         partitions[i].merge(partitions[j], upperbound_cost);
 
@@ -219,7 +195,7 @@ bool merge_df_bb_search2(std::string ij_order_type,
 
     bool flag = merge_df_bb_search2(
         ij_order_type, best_partitions, next_partitions, checked_partitions,
-        logger, best_sumcard, best_sumcost, hf_type, k, el, complete_search,
+        logger, best_nap, best_mac, hf_type, k, el, complete_search,
         valid_already_found, use_upperbound_cost, base_dist_map);
     if (flag) {
       return true;

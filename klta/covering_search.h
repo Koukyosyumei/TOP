@@ -184,9 +184,9 @@ inline
       }
 
       // std::cout << front_h << " " << upperbound_cost << std::endl;
-      if (front_f > upperbound_cost) {
-        return {expansions, {}};
-      }
+      // if (front_f > upperbound_cost) {
+      //  return {expansions, {}};
+      // }
 
       children = make_children_nodes(vf, nodes[node_idx], node_idx);
       for (Node child : children) {

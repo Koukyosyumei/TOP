@@ -32,17 +32,29 @@ struct Partition {
   int h_to_unseen_min = MAX_DIST;
   int h_to_unseen_max = 0;
   int h_to_goal = MAX_DIST;
+  float ac = 0;
+  flat_hash_map<int, int> *base_dist_map;
 
   Partition(){};
   Partition(int k, int el, int source, int goal, HeuristicFuncBase *hfunc,
             VisibilityFunc *vf,
             std::vector<std::vector<std::pair<int, int>>> *graph,
             std::vector<std::vector<int>> *asaplookup,
-            std::vector<int> &elements, int upperbound_cost)
+            flat_hash_map<int, int> *base_dist_map, std::vector<int> &elements,
+            int upperbound_cost)
       : k(k), el(el), source(source), goal(goal), hfunc(hfunc), vf(vf),
-        graph(graph), asaplookup(asaplookup), elements(elements) {
+        graph(graph), asaplookup(asaplookup), base_dist_map(base_dist_map),
+        elements(elements) {
     judge_path_covering_condition(upperbound_cost);
+    calculate_ac();
     calculate_centroids();
+  }
+
+  void calculate_ac() {
+    for (int e : elements) {
+      ac += ((float)cost_of_cover_path - (float)base_dist_map->at(e)) /
+            (float)base_dist_map->at(e);
+    }
   }
 
   size_t hash_value() {
@@ -174,7 +186,7 @@ struct Partition {
                         other.elements.end());
 
     Partition par = Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
-                              new_elements, upperbound_cost);
+                              base_dist_map, new_elements, upperbound_cost);
     par.h_to_unseen_min = std::min(h_to_unseen_min, other.h_to_unseen_min);
     par.h_to_unseen_max = std::max(h_to_unseen_max, other.h_to_unseen_max);
     par.h_to_goal = std::min(h_to_goal, other.h_to_goal);
@@ -331,10 +343,10 @@ struct Logger {
   void close() { log_file.close(); }
 };
 
-inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
+inline bool is_prunable(Partition &p_i, Partition &p_j, float sum_ac,
                         flat_hash_set<size_t> &checked_partitions,
-                        size_t hash_val, Logger &logger, int &best_sumcard,
-                        int &best_sumcost, std::string hf_type, int k, int el,
+                        size_t hash_val, Logger &logger, int &best_nap,
+                        float &best_mac, std::string hf_type, int k, int el,
                         bool complete_search, bool &valid_already_found,
                         bool use_upperbound_cost,
                         bool use_duplication_detection = true) {
@@ -349,13 +361,9 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
     logger.skipped_count++;
     return true;
   }
-  int upperbound_cost = MAX_DIST;
+  float upperbound_ac = (float)MAX_DIST;
   if (valid_already_found && use_upperbound_cost) {
-    upperbound_cost =
-        best_sumcost -
-        (sumcost - (int)p_i.elements.size() * p_i.cost_of_cover_path -
-         (int)p_j.elements.size() * p_j.cost_of_cover_path);
-    upperbound_cost /= ((int)p_i.elements.size() + (int)p_j.elements.size());
+    upperbound_ac = best_mac * (float)best_nap - (sum_ac - p_i.ac - p_j.ac);
 
     int estimated_cost = 0;
     if (hf_type == "tunnel" || hf_type == "mst") {
@@ -369,8 +377,17 @@ inline bool is_prunable(Partition &p_i, Partition &p_j, int sumcost,
                              (int)p_j.elements.size() - 1)) +
           std::min(p_i.h_to_goal, p_j.h_to_goal);
     }
+    float lowerbound_ac = 0;
+    for (int e : p_i.elements) {
+      lowerbound_ac += ((float)estimated_cost - p_i.base_dist_map->at(e)) /
+                       p_i.base_dist_map->at(e);
+    }
+    for (int e : p_j.elements) {
+      lowerbound_ac += ((float)estimated_cost - p_i.base_dist_map->at(e)) /
+                       p_i.base_dist_map->at(e);
+    }
 
-    if (estimated_cost > upperbound_cost) {
+    if (lowerbound_ac > upperbound_ac) {
       logger.skipped_count++;
       return true;
     }

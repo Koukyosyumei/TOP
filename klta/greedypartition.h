@@ -14,7 +14,7 @@ inline
                            std::vector<Partition> subsets,
                            std::vector<Partition> unassigned,
                            flat_hash_set<size_t> &checked_partitions,
-                           Logger &logger, int &best_sumcard, int &best_sumcost,
+                           Logger &logger, int &best_nap, float &best_mac,
                            std::string hf_type, int k, int el,
                            bool complete_search, bool &valid_already_found,
                            bool use_upperbound_cost, bool use_prune,
@@ -28,35 +28,32 @@ inline
 
   bool valid_paritions = true;
   int sumcost = 0;
-  int satisfying_sumcard = 0;
-  int satisfying_sumcost = 0;
-  float apc = 0;
+  int satisfying_nap = 0;
+  float sum_ac = 0;
+  float satisfying_mac = 0;
   for (Partition p : subsets) {
-    sumcost += p.elements.size() * p.cost_of_cover_path;
+    satisfying_nap += p.elements.size();
     if (p.is_satisfying) {
-      satisfying_sumcard += p.elements.size();
-      satisfying_sumcost += p.elements.size() * p.cost_of_cover_path;
-      for (int e : p.elements) {
-        apc += ((float)p.cost_of_cover_path - (float)base_dist_map[e]) /
-               (float)base_dist_map[e];
-      }
+      satisfying_nap += p.elements.size();
+      satisfying_mac += p.ac;
     } else {
       valid_paritions = false;
     }
+    sum_ac += p.ac;
   }
+  satisfying_mac = satisfying_mac / (float)(satisfying_nap);
 
   if (unassigned.size() == 0) {
     logger.cum_count++;
 
-    if (satisfying_sumcard > best_sumcard ||
-        (satisfying_sumcard == best_sumcard &&
-         satisfying_sumcost < best_sumcost)) {
-      best_sumcard = satisfying_sumcard;
-      best_sumcost = satisfying_sumcost;
+    if (satisfying_nap > best_nap ||
+        (satisfying_nap == best_nap && satisfying_mac < best_mac)) {
+      best_nap = satisfying_nap;
+      best_mac = satisfying_mac;
       best_partitions = subsets;
 
-      logger.sum_card = best_sumcard;
-      logger.avg_path_cost = apc / (float)best_sumcard;
+      logger.sum_card = best_nap;
+      logger.avg_path_cost = best_mac;
     }
     if (valid_paritions) {
       if (!valid_already_found) {
@@ -84,7 +81,7 @@ inline
 
       if (use_prune &&
           is_prunable(subsets[i], picked, sumcost, checked_partitions, hash_val,
-                      logger, best_sumcard, best_sumcost, hf_type, k, el,
+                      logger, best_nap, best_mac, hf_type, k, el,
                       complete_search, valid_already_found, use_upperbound_cost,
                       false)) {
         continue;
@@ -100,9 +97,9 @@ inline
 
       bool flag = greedypartition_search(
           j_order_type, best_partitions, subsets, unassigned,
-          checked_partitions, logger, best_sumcard, best_sumcost, hf_type, k,
-          el, complete_search, valid_already_found, use_upperbound_cost,
-          use_prune, base_dist_map);
+          checked_partitions, logger, best_nap, best_mac, hf_type, k, el,
+          complete_search, valid_already_found, use_upperbound_cost, use_prune,
+          base_dist_map);
       if (flag) {
         return true;
       }
@@ -112,7 +109,7 @@ inline
     subsets.push_back(picked);
     bool flag = greedypartition_search(
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
-        logger, best_sumcard, best_sumcost, hf_type, k, el, complete_search,
+        logger, best_nap, best_mac, hf_type, k, el, complete_search,
         valid_already_found, use_upperbound_cost, use_prune, base_dist_map);
     if (flag) {
       return true;
@@ -156,7 +153,8 @@ inline
     if (is_valid) {
       std::vector<int> tmp_elements = {i};
       unassigned.push_back(Partition(k, el, source, goal, hfunc, vf, graph,
-                                     asaplookup, tmp_elements, MAX_DIST));
+                                     asaplookup, &base_dist_map, tmp_elements,
+                                     MAX_DIST));
       unassigned[unassigned.size() - 1].calculate_singleton_h_value();
       logger.total_num_expanded_node +=
           unassigned[unassigned.size() - 1].num_expanded_nodes;
@@ -167,12 +165,12 @@ inline
   logger.log_file << transit_candidates.size() - unassigned.size()
                   << " Nodes Removed\n";
 
-  int best_sumcard = 0;
-  int best_sumcost = MAX_DIST;
+  int best_nap = 0;
+  float best_mac = (float)MAX_DIST;
   bool valid_found = false;
   flat_hash_set<size_t> checked_partitions;
   greedypartition_search(j_order_type, best_partitions, subsets, unassigned,
-                         checked_partitions, logger, best_sumcard, best_sumcost,
+                         checked_partitions, logger, best_nap, best_mac,
                          hf_type, k, el, complete_search, valid_found,
                          use_upperbound_cost, use_prune, base_dist_map);
   logger.summary();
