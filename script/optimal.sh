@@ -1,49 +1,72 @@
-TIMEOUT=1000000
+VALUE_C=8
 
-for seed in 1 2 3 4 5
- do
-   FILE_NAME="t=grid_n=6_e=0.5_s=${seed}_"
-   python3 script/random_graph_generator.py -t grid -n 6 -o 0.5 -s $seed > data/${FILE_NAME}.in
+while getopts c: OPT; do
+  case $OPT in
+  "c")
+    FLG_C="TRUE"
+    VALUE_C="$OPTARG"
+    ;;
+  esac
 done
 
+TIMEOUT=300000
+
+# den101d: 41 x 73: 1360 
+# den201d: 37 x 37: 538
+# lak202d: 182 x 159: 6240
+# lak510d: 253 x 287: 7713
+# orz000d: 137 x 49: 4057
+# orz201d: 45 x 47: 745
+# orz301d: 180 x 120: 4529
+
 for seed in 1 2 3 4 5
-do
-FILE_NAMEG="t=grid_n=6_e=0.5_s=${seed}_"
- for h in blind tunnel
  do
-  for j in random nearest
-  do
-   for k in 2 3
+ for f in "den101d.map" "den201d.map" "lak202d.map" "lak510d.map" "orz000d.map" "orz201d.map" 
    do
-    for l in 1 2 3
+   python3 script/random_graph_generator.py -t fgrid -g assets/${f} -s $seed -c ${VALUE_C} > "data/${f}_n=1_e=1_s=${seed}.in"
+ done
+done
+
+for k in 2 3
+ do
+ for el in 1 10
+  do
+  for h in blind tunnel
+   do
+   for j in "random" "asccost"
     do
-    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -t ${TIMEOUT} -f output/${h}-${j}$-${FILE_NAMEG}k${k}l${l}merge.out -c -u < data/${FILE_NAMEG}.in &
-    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -t ${TIMEOUT} -v radius -r 1 -f output/radius1-${h}-${j}$-${FILE_NAMEG}k${k}l${l}merge.out -c -u < data/${FILE_NAMEG}.in &
-    ./topsolver -k $k -l $l -p merge -h $h -j ${j} -t ${TIMEOUT} -v radius -r 2 -f output/radius2-${h}-${j}$-${FILE_NAMEG}k${k}l${l}merge.out -c -u < data/${FILE_NAMEG}.in &
+    for f in "den101d.map" "den201d.map" "lak202d.map" "lak510d.map" "orz000d.map" "orz201d.map" 
+    do
+     for seed in 1 2 3 4 5
+      do
+      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -f output/${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -v radius -r 2 -f output/r1${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     done
+     echo ${f} ${k} ${el} ${h} ${j} & wait
     done
    done
   done
  done
 done
-echo "Merge Done" & wait
 
-#for seed in 1 2 3 4 5
-#do
-#FILE_NAMEG="t=grid_n=6_e=0.5_s=${seed}_"
-# for h in blind tunnel
-# do
-#   for k in 2 3
-#   do
-#    for l in 1 2 3
-#    do
-#    ./topsolver -k $k -l $l -p greedy -h $h -t ${TIMEOUT} -f output/${h}-${FILE_NAMEG}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEG}.in &
-#    ./topsolver -k $k -l $l -p greedy -h $h -t ${TIMEOUT} -v radius -r 1 -f output/radius1-${h}-${FILE_NAMEG}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEG}.in &
-#    ./topsolver -k $k -l $l -p greedy -h $h -t ${TIMEOUT} -v radius -r 2 -f output/radius2-${h}-${FILE_NAMEG}k${k}l${l}greedy.out -c -u < data/${FILE_NAMEG}.in &
-#    done
-#  done
-# done
-#done
-#echo "Greedy Done" & wait
+for k in 2
+ do
+ for el in 1
+  do
+  for h in blind tunnel
+   do
+   for f in "den101d.map" "den201d.map" "lak202d.map" "lak510d.map" "orz000d.map" "orz201d.map" 
+    do
+    for seed in 1 2 3 4 5
+     do
+     ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -f output/${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -v radius -r 2 -f output/r1${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     done
+    echo ${f} ${k} ${el} ${h} & wait
+   done
+  done
+ done
+done
 
-echo "Finishing..." & wait
-python3 script/report.py -d "output/*" -o report.csv
+python3 script/report.py -d "output/*" -o report_summary_${VALUE_C}.csv -t report_time_${VALUE_C}.csv
+
