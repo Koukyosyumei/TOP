@@ -21,7 +21,7 @@ inline
                            flat_hash_map<int, int> &base_dist_map) {
 
   size_t hash_val = hash_values_of_partitions(subsets);
-  // checked_partitions.insert(hash_val);
+  checked_partitions.insert(hash_val);
   if (logger.print()) {
     return true;
   }
