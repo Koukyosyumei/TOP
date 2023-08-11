@@ -10,9 +10,9 @@ inline
 #endif
     bool
     greedypartition_search(std::string j_order_type,
-                           std::vector<Partition *> &best_partitions,
-                           std::vector<Partition *> &subsets,
-                           std::vector<Partition *> &unassigned,
+                           std::vector<Partition> &best_partitions,
+                           std::vector<Partition *> subsets,
+                           std::vector<Partition *> unassigned,
                            flat_hash_set<size_t> &checked_partitions,
                            Logger &logger, int &best_nap, float &best_mac,
                            std::string hf_type, int k, int el,
@@ -48,7 +48,11 @@ inline
         (satisfying_nap == best_nap && satisfying_mac < best_mac)) {
       best_nap = satisfying_nap;
       best_mac = satisfying_mac;
-      best_partitions = subsets;
+      best_partitions.clear();
+      best_partitions.reserve(subsets.size());
+      for (Partition *p : subsets) {
+        best_partitions.push_back(*p);
+      }
 
       logger.sum_card = best_nap;
       logger.avg_path_cost = best_mac;
@@ -74,6 +78,7 @@ inline
     // std::mt19937 engine(logger.cum_count);
     // std::shuffle(idxs.begin(), idxs.end(), engine);
 
+    // std::vector<int> new_idxs;
     for (int i : idxs) {
       Partition *p_tmp = subsets[i];
 
@@ -85,6 +90,7 @@ inline
         continue;
       }
 
+      // new_idxs.push_back(i);
       subsets[i] = subsets[i]->merge(picked, MAX_DIST);
       logger.total_num_expanded_node += subsets[i]->num_expanded_nodes;
 
@@ -109,6 +115,7 @@ inline
         j_order_type, best_partitions, subsets, unassigned, checked_partitions,
         logger, best_nap, best_mac, hf_type, k, el, complete_search,
         valid_already_found, use_upperbound_cost, use_prune, base_dist_map);
+
     if (flag) {
       return true;
     }
@@ -130,7 +137,7 @@ inline
                     bool use_upperbound_cost, Logger &logger, bool use_prune,
                     flat_hash_map<int, int> &base_dist_map) {
   int N = graph->size();
-  std::vector<Partition *> best_partitions(0);
+  std::vector<Partition> best_partitions(0);
   std::vector<Partition *> subsets;
   std::vector<Partition *> unassigned;
 
@@ -172,10 +179,5 @@ inline
                          hf_type, k, el, complete_search, valid_found,
                          use_upperbound_cost, use_prune, base_dist_map);
   logger.summary();
-  std::vector<Partition> result;
-  result.reserve(best_partitions.size());
-  for (Partition *p : best_partitions) {
-    result.push_back(*p);
-  }
-  return result;
+  return best_partitions;
 }
