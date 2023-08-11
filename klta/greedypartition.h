@@ -73,12 +73,23 @@ inline
     Partition *picked = unassigned[n];
     unassigned.erase(unassigned.begin() + n);
 
+    subsets.push_back(picked);
+    bool flag = greedypartition_search(
+        j_order_type, best_partitions, subsets, unassigned, checked_partitions,
+        logger, best_nap, best_mac, hf_type, k, el, complete_search,
+        valid_already_found, use_upperbound_cost, use_prune, base_dist_map);
+
+    if (flag) {
+      return true;
+    }
+
+    subsets.resize(subsets.size() - 1);
+
     std::vector<int> idxs(subsets.size());
     std::iota(idxs.begin(), idxs.end(), 0);
     // std::mt19937 engine(logger.cum_count);
     // std::shuffle(idxs.begin(), idxs.end(), engine);
 
-    // std::vector<int> new_idxs;
     for (int i : idxs) {
       Partition *p_tmp = subsets[i];
 
@@ -94,6 +105,7 @@ inline
       subsets[i] = subsets[i]->merge(picked, MAX_DIST);
       logger.total_num_expanded_node += subsets[i]->num_expanded_nodes;
       subsets[i]->cover_path.clear();
+      subsets[i]->cover_path.shrink_to_fit();
       // if (use_prune && subsets[i].cover_path.size() == 0) {
       //  logger.skipped_count++;
       //  continue;
@@ -108,16 +120,6 @@ inline
         return true;
       }
       subsets[i] = p_tmp;
-    }
-
-    subsets.push_back(picked);
-    bool flag = greedypartition_search(
-        j_order_type, best_partitions, subsets, unassigned, checked_partitions,
-        logger, best_nap, best_mac, hf_type, k, el, complete_search,
-        valid_already_found, use_upperbound_cost, use_prune, base_dist_map);
-
-    if (flag) {
-      return true;
     }
   }
 
@@ -164,6 +166,7 @@ inline
       logger.total_num_expanded_node +=
           unassigned[unassigned.size() - 1]->num_expanded_nodes;
       unassigned[unassigned.size() - 1]->cover_path.clear();
+      unassigned[unassigned.size() - 1]->cover_path.shrink_to_fit();
     }
   }
 

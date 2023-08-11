@@ -26,7 +26,7 @@ inline
                 flat_hash_map<int, int> &base_dist_map) {
   int N = graph->size();
   std::vector<Partition> best_partitions(0);
-  std::vector<Partition> partitions;
+  std::vector<Partition *> partitions;
 
   std::vector<int> visible_points_of_i;
   for (int i : transit_candidates) {
@@ -44,12 +44,14 @@ inline
     }
     if (is_valid) {
       std::vector<int> tmp_elements = {i};
-      partitions.push_back(Partition(k, el, source, goal, hfunc, vf, graph,
-                                     asaplookup, &base_dist_map, tmp_elements,
-                                     MAX_DIST));
-      partitions[partitions.size() - 1].calculate_singleton_h_value();
+      partitions.push_back(new Partition(k, el, source, goal, hfunc, vf, graph,
+                                         asaplookup, &base_dist_map,
+                                         tmp_elements, MAX_DIST));
+      partitions[partitions.size() - 1]->calculate_singleton_h_value();
       logger.total_num_expanded_node +=
-          partitions[partitions.size() - 1].num_expanded_nodes;
+          partitions[partitions.size() - 1]->num_expanded_nodes;
+      partitions[partitions.size() - 1]->cover_path.clear();
+      partitions[partitions.size() - 1]->cover_path.shrink_to_fit();
     }
   }
 
