@@ -33,12 +33,30 @@ for k in 2
   do
   for h in blind tunnel
    do
-   for f in "den101d.map" "den201d.map" "lak202d.map" "lak510d.map" "orz000d.map" "orz201d.map" 
+   for f in "den101d.map" "den201d.map" "lak202d.map"
     do
     for seed in 1 2 3 4 5
      do
      ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -f output/${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
-     ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -v radius -r 2 -f output/r1${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -v radius -r 10 -f output/r10${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     done
+   done
+   echo ${k} ${el} ${h} & wait
+  done
+ done
+done
+
+for k in 2
+ do
+ for el in 1
+  do
+  for h in blind tunnel
+   do
+   for f in "lak510d.map" "orz000d.map" "orz201d.map" 
+    do
+    for seed in 1 2 3 4 5
+     do
+     ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -f output/${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
      ./topsolver -k ${k} -l ${el} -h ${h} -p "df+" -b 100 -t ${TIMEOUT} -v radius -r 10 -f output/r10${h}${k}${el}${f}_${seed}dfp.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
      done
    done
@@ -55,12 +73,33 @@ for k in 2 3
    do
    for j in "random" "asccost"
     do
-    for f in "den101d.map" "den201d.map" "lak202d.map" "lak510d.map" "orz000d.map" "orz201d.map" 
+    for f in "den101d.map" "den201d.map" "lak202d.map"
     do
      for seed in 1 2 3 4 5
       do
       ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -f output/${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
-      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -v radius -r 2 -f output/r1${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -v radius -r 10 -f output/r10${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     done
+    done
+    echo ${k} ${el} ${h} ${j} & wait
+   done
+  done
+ done
+done
+
+for k in 2 3
+ do
+ for el in 1 10
+  do
+  for h in blind tunnel
+   do
+   for j in "random" "asccost"
+    do
+    for f in "lak510d.map" "orz000d.map" "orz201d.map" 
+    do
+     for seed in 1 2 3 4 5
+      do
+      ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -f output/${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
       ./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -v radius -r 10 -f output/r10${h}${j}${k}${el}${f}_${seed}merge.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
      done
     done
