@@ -11,8 +11,8 @@ inline
     bool
     greedypartition_search(std::string j_order_type,
                            std::vector<Partition> &best_partitions,
-                           std::vector<Partition> subsets,
-                           std::vector<Partition> unassigned,
+                           std::vector<Partition> &subsets,
+                           std::vector<Partition> &unassigned,
                            flat_hash_set<size_t> &checked_partitions,
                            Logger &logger, int &best_nap, float &best_mac,
                            std::string hf_type, int k, int el,
