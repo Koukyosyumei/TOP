@@ -93,7 +93,7 @@ inline
       // new_idxs.push_back(i);
       subsets[i] = subsets[i]->merge(picked, MAX_DIST);
       logger.total_num_expanded_node += subsets[i]->num_expanded_nodes;
-
+      subsets[i]->cover_path.clear();
       // if (use_prune && subsets[i].cover_path.size() == 0) {
       //  logger.skipped_count++;
       //  continue;
@@ -163,6 +163,7 @@ inline
       unassigned[unassigned.size() - 1]->calculate_singleton_h_value();
       logger.total_num_expanded_node +=
           unassigned[unassigned.size() - 1]->num_expanded_nodes;
+      unassigned[unassigned.size() - 1]->cover_path.clear();
     }
   }
 

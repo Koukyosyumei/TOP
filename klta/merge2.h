@@ -160,9 +160,9 @@ bool merge_df_bb_search2(std::string ij_order_type,
   int partitions_num = partitions.size();
 
   std::vector<std::tuple<float, size_t, size_t>> ij_order =
-      orderofij(ij_order_type, sum_ac, partitions, checked_partitions,
-                hash_val, logger, best_nap, best_mac, hf_type, k, el,
-                complete_search, valid_already_found, use_upperbound_cost);
+      orderofij(ij_order_type, sum_ac, partitions, checked_partitions, hash_val,
+                logger, best_nap, best_mac, hf_type, k, el, complete_search,
+                valid_already_found, use_upperbound_cost);
 
   for (std::tuple<float, size_t, size_t> &ij : ij_order) {
     int i = std::get<1>(ij);
@@ -177,6 +177,7 @@ bool merge_df_bb_search2(std::string ij_order_type,
       logger.skipped_count++;
       continue;
     }
+    partition_i_j.cover_path.clear();
 
     std::vector<Partition> next_partitions;
     if (!partition_i_j.is_satisfying) {
