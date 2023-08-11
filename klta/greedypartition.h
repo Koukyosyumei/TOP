@@ -30,14 +30,14 @@ inline
   int satisfying_nap = 0;
   float sum_ac = 0;
   float satisfying_mac = 0;
-  for (Partition p : subsets) {
-    if (p.is_satisfying) {
-      satisfying_nap += p.elements.size();
-      satisfying_mac += p.ac;
+  for (Partition *p : subsets) {
+    if (p->is_satisfying) {
+      satisfying_nap += p->elements.size();
+      satisfying_mac += p->ac;
     } else {
       valid_paritions = false;
     }
-    sum_ac += p.ac;
+    sum_ac += p->ac;
   }
   satisfying_mac = satisfying_mac / (float)(satisfying_nap);
 
@@ -151,7 +151,8 @@ inline
     if (is_valid) {
       std::vector<int> tmp_elements = {i};
       unassigned.push_back(new Partition(k, el, source, goal, hfunc, vf, graph,
-                                         asaplookup, tmp_elements, MAX_DIST));
+                                         asaplookup, &base_dist_map,
+                                         tmp_elements, MAX_DIST));
       unassigned[unassigned.size() - 1]->calculate_singleton_h_value();
       logger.total_num_expanded_node +=
           unassigned[unassigned.size() - 1]->num_expanded_nodes;
