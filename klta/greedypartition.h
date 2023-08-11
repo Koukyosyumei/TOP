@@ -10,9 +10,9 @@ inline
 #endif
     bool
     greedypartition_search(std::string j_order_type,
-                           std::vector<Partition> &best_partitions,
-                           std::vector<Partition> &subsets,
-                           std::vector<Partition> &unassigned,
+                           std::vector<Partition *> &best_partitions,
+                           std::vector<Partition *> subsets,
+                           std::vector<Partition *> unassigned,
                            flat_hash_set<size_t> &checked_partitions,
                            Logger &logger, int &best_nap, float &best_mac,
                            std::string hf_type, int k, int el,
@@ -66,7 +66,7 @@ inline
 
   } else {
     int n = 0;
-    Partition picked = unassigned[n];
+    Partition *picked = unassigned[n];
     unassigned.erase(unassigned.begin() + n);
 
     std::vector<int> idxs(subsets.size());
@@ -75,20 +75,20 @@ inline
     // std::shuffle(idxs.begin(), idxs.end(), engine);
 
     for (int i : idxs) {
-      Partition p_tmp = subsets[i];
+      Partition *p_tmp = subsets[i];
 
       if (use_prune &&
           is_prunable(subsets[i], picked, sum_ac, checked_partitions, hash_val,
                       logger, best_nap, best_mac, hf_type, k, el,
-                      complete_search, valid_already_found, 
-                      use_upperbound_cost, false)) {
+                      complete_search, valid_already_found, use_upperbound_cost,
+                      false)) {
         continue;
       }
 
-      subsets[i] = subsets[i].merge(picked, MAX_DIST);
-      logger.total_num_expanded_node += subsets[i].num_expanded_nodes;
+      subsets[i] = subsets[i]->merge(picked, MAX_DIST);
+      logger.total_num_expanded_node += subsets[i]->num_expanded_nodes;
 
-      //if (use_prune && subsets[i].cover_path.size() == 0) {
+      // if (use_prune && subsets[i].cover_path.size() == 0) {
       //  logger.skipped_count++;
       //  continue;
       //}
@@ -130,9 +130,9 @@ inline
                     bool use_upperbound_cost, Logger &logger, bool use_prune,
                     flat_hash_map<int, int> &base_dist_map) {
   int N = graph->size();
-  std::vector<Partition> best_partitions(0);
-  std::vector<Partition> subsets;
-  std::vector<Partition> unassigned;
+  std::vector<Partition *> best_partitions(0);
+  std::vector<Partition *> subsets;
+  std::vector<Partition *> unassigned;
 
   std::vector<int> visible_points_of_i;
   for (int i : transit_candidates) {
@@ -150,12 +150,11 @@ inline
     }
     if (is_valid) {
       std::vector<int> tmp_elements = {i};
-      unassigned.push_back(Partition(k, el, source, goal, hfunc, vf, graph,
-                                     asaplookup, &base_dist_map, tmp_elements,
-                                     MAX_DIST));
-      unassigned[unassigned.size() - 1].calculate_singleton_h_value();
+      unassigned.push_back(new Partition(k, el, source, goal, hfunc, vf, graph,
+                                         asaplookup, tmp_elements, MAX_DIST));
+      unassigned[unassigned.size() - 1]->calculate_singleton_h_value();
       logger.total_num_expanded_node +=
-          unassigned[unassigned.size() - 1].num_expanded_nodes;
+          unassigned[unassigned.size() - 1]->num_expanded_nodes;
     }
   }
 
@@ -172,5 +171,10 @@ inline
                          hf_type, k, el, complete_search, valid_found,
                          use_upperbound_cost, use_prune, base_dist_map);
   logger.summary();
-  return best_partitions;
+  std::vector<Partition> result;
+  result.reserve(best_partitions.size());
+  for (Partition *p : best_partitions) {
+    result.push_back(*p);
+  }
+  return result;
 }
