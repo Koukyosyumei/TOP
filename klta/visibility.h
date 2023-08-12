@@ -69,9 +69,8 @@ struct RadiusVF : public VisibilityFunc {
       return it->second;
     }
     std::vector<int> result;
-    for (std::pair<int, int> e : graph->at(i)) {
-      int j = e.first;
-      if (asaplookup->at(i)[j] <= radius) {
+    for (int j = 0; j < asaplookup->size(); j++) {
+      if (i != j && asaplookup->at(i)[j] <= radius) {
         result.push_back(j);
       }
     }
@@ -107,9 +106,8 @@ struct RadiusVF : public VisibilityFunc {
       return avp.size();
     }
 
-    for (std::pair<int, int> e : graph->at(i)) {
-      int j = e.first;
-      if (asaplookup->at(i)[j] <= radius) {
+    for (int j = 0; j < asaplookup->size(); j++) {
+      if (i != j && asaplookup->at(i)[j] <= radius) {
         avp.emplace_back(j);
       }
     }
