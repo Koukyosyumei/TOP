@@ -165,7 +165,6 @@ inline
   int skipped = 0;
   int front_f = 0;
   while (!queue.empty()) {
-    std::cout << 3 << std::endl;  
     iterations++;
 
     front_status = queue.top();
@@ -173,12 +172,9 @@ inline
     node_idx = std::get<2>(front_status);
     queue.pop();
 
-    std::cout << 4 << std::endl;
-
     if ((!use_cache) ||
         (state_cost[nodes[node_idx].hash_value] == nodes[node_idx].g)) {
       expansions++;
-      std::cout << 5 << std::endl;
       if (nodes[node_idx].location == goal_loc &&
 #ifdef _AF
           nodes[node_idx].numunseen == 0) {
@@ -187,7 +183,6 @@ inline
 #endif
         return std::make_pair(expansions, extract_solution(node_idx, nodes));
       }
-      std::cout << 6 << std::endl;
 
       // std::cout << front_h << " " << upperbound_cost << std::endl;
       // if (front_f > upperbound_cost) {
@@ -195,9 +190,7 @@ inline
       // }
 
       children = make_children_nodes(vf, nodes[node_idx], node_idx);
-      std::cout << 7 << std::endl;
       for (Node child : children) {
-        std::cout << 8 << std::endl;  
         nodes.emplace_back(child);
 #ifdef _AF
         h = hfunc->calculate_hval(nodes[nodes.size() - 1], target_elements);
@@ -218,15 +211,11 @@ inline
               queue.push({-1 * (h + succ_g), -1 * h, nodes.size() - 1});
               state_cost.emplace(child.hash_value, succ_g);
             }
+          } else {
+            queue.push({-1 * (h + succ_g), -1 * h, nodes.size() - 1});
           }
-          else {  
-          std::cout << 1 << std::endl;  
-          queue.push({-1 * (h + succ_g), -1 * h, nodes.size() - 1});
-          std::cout << 2 << std::endl;
         }
-
-        }       }
-      std::cout << 9 << std::endl;
+      }
     } else {
       skipped++;
     }
