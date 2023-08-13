@@ -143,7 +143,7 @@ inline
     std::pair<int, std::vector<Node>>
     search(HeuristicFuncBase *hfunc, VisibilityFunc *vf, int start_loc,
            int goal_loc, std::vector<int> &target_elements,
-           int upperbound_cost) {
+           int upperbound_cost, bool use_cache=true) {
   std::priority_queue<std::tuple<int, int, int>> queue;
   Node start = make_root_node(vf, start_loc, target_elements);
   std::vector<Node> nodes = {start};
@@ -172,7 +172,7 @@ inline
     node_idx = std::get<2>(front_status);
     queue.pop();
 
-    if (state_cost[nodes[node_idx].hash_value] == nodes[node_idx].g) {
+    if ((!use_cache) || (state_cost[nodes[node_idx].hash_value] == nodes[node_idx].g)) {
       expansions++;
       if (nodes[node_idx].location == goal_loc &&
 #ifdef _AF
@@ -199,6 +199,7 @@ inline
         old_succ_g = MAX_DIST;
         succ_g = nodes[nodes.size() - 1].g;
         if (h + succ_g <= upperbound_cost) {
+          if (use_cache) {  
           if (state_cost.find(child.hash_value) != state_cost.end()) {
             old_succ_g = state_cost[child.hash_value];
             if (succ_g < old_succ_g) {
@@ -209,6 +210,9 @@ inline
             queue.push({-1 * (h + succ_g), -1 * h, nodes.size() - 1});
             state_cost.emplace(child.hash_value, succ_g);
           }
+        }
+        } else {
+            queue.push({-1 * (h + succ_g), -1 * h, nodes.size() - 1});
         }
       }
     } else {
