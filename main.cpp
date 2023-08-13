@@ -22,6 +22,7 @@ int N = 0;
 #ifdef _MERGE2
 #include "klta/merge2.h"
 #endif
+#include "klta/covering_search.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
 #include "klta/mergebb.h"
@@ -199,6 +200,44 @@ int main(int argc, char *argv[]) {
                                  vf, &graph, &asaplookup, transit_candidates,
                                  complete_search, use_upperbound_cost, logger,
                                  true, base_dist_map);
+  } else if (partition_type == "wrp") {
+    std::vector<int> feasible_transit_candidates;
+    std::vector<int> visible_points_of_i;
+    for (int i : transit_candidates) {
+      if (i == source || i == goal) {
+        continue;
+      }
+
+      bool is_valid = false;
+      visible_points_of_i = vf->get_all_watchers(i);
+      for (int j : visible_points_of_i) {
+        if ((asaplookup.at(source)[j] != MAX_DIST) &&
+            (asaplookup.at(j)[goal] != MAX_DIST)) {
+          is_valid = true;
+          break;
+        }
+      }
+      if (is_valid) {
+        feasible_transit_candidates.emplace_back(i);
+      }
+    }
+
+    logger.tot_node_num = transit_candidates.size();
+    logger.log_file << transit_candidates.size() -
+                           feasible_transit_candidates.size()
+                    << " Nodes Removed\n";
+
+    std::pair<int, std::vector<Node>> result =
+        search(hf, vf, source, goal, feasible_transit_candidates, MAX_DIST);
+    int cost_of_cover_path = result.second[result.second.size() - 1].g;
+    float ac = 0;
+    for (int e : feasible_transit_candidates) {
+      ac += ((float)cost_of_cover_path - (float)base_dist_map[e]) /
+            (float)base_dist_map[e];
+    }
+    logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
+    logger.end_time = std::chrono::system_clock::now();
+    logger.summary();
   } else {
     throw std::invalid_argument("Partition type should be merge/df/df+");
   }
