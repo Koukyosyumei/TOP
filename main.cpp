@@ -25,6 +25,7 @@ int N = 0;
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
 #include "klta/mergebb.h"
+#include "klta/randomwalk.h"
 #include "klta/utils.h"
 #include "klta/visibility.h"
 #include <chrono>
@@ -199,6 +200,7 @@ int main(int argc, char *argv[]) {
                                  vf, &graph, &asaplookup, transit_candidates,
                                  complete_search, use_upperbound_cost, logger,
                                  true, base_dist_map);
+  } else if (partition_type == "random") {
   } else {
     throw std::invalid_argument("Partition type should be merge/df/df+");
   }
