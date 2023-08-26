@@ -22,6 +22,7 @@ int N = 0;
 #ifdef _MERGE2
 #include "klta/merge2.h"
 #endif
+#include "klta/covering_search.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
 #include "klta/mergebb.h"
@@ -46,10 +47,11 @@ std::string j_order_type = "random";
 std::string log_file_path = "log.out";
 bool complete_search = false;
 bool use_upperbound_cost = false;
+bool print_cover_path = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:r:p:h:j:b:t:f:cu")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:v:r:p:h:j:b:t:f:cua")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
@@ -85,6 +87,9 @@ void parse_args(int argc, char *argv[]) {
       break;
     case 'u':
       use_upperbound_cost = true;
+      break;
+    case 'a':
+      print_cover_path = true;
       break;
     default:
       printf("unknown parameter %s is specified", optarg);
@@ -199,6 +204,102 @@ int main(int argc, char *argv[]) {
                                  vf, &graph, &asaplookup, transit_candidates,
                                  complete_search, use_upperbound_cost, logger,
                                  true, base_dist_map);
+  } else if (partition_type == "naive") {
+    std::vector<int> feasible_transit_candidates;
+    std::vector<int> visible_points_of_i;
+    for (int i : transit_candidates) {
+      if (i == source || i == goal) {
+        continue;
+      }
+
+      bool is_valid = false;
+      visible_points_of_i = vf->get_all_watchers(i);
+      for (int j : visible_points_of_i) {
+        if ((asaplookup.at(source)[j] != MAX_DIST) &&
+            (asaplookup.at(j)[goal] != MAX_DIST)) {
+          is_valid = true;
+          break;
+        }
+      }
+      if (is_valid) {
+        feasible_transit_candidates.emplace_back(i);
+      }
+    }
+
+    std::default_random_engine rng(42);
+    std::shuffle(feasible_transit_candidates.begin(),
+                 feasible_transit_candidates.end(), rng);
+
+    logger.tot_node_num = transit_candidates.size();
+    logger.log_file << transit_candidates.size() -
+                           feasible_transit_candidates.size()
+                    << " Nodes Removed\n";
+
+    int num_partition = feasible_transit_candidates.size() / k;
+    for (int j = 0; j < num_partition - 1; j++) {
+      std::vector<int> elements;
+      for (int i = j * k; i < (j + 1) * k; i++) {
+        elements.push_back(feasible_transit_candidates[i]);
+      }
+      partitions.emplace_back(Partition(k, el, source, goal, hf, vf, &graph,
+                                        &asaplookup, &base_dist_map, elements,
+                                        MAX_DIST));
+    }
+    std::vector<int> elements;
+    for (int i = k * (num_partition - 1);
+         i < feasible_transit_candidates.size(); i++) {
+      elements.emplace_back(feasible_transit_candidates[i]);
+    }
+    partitions.emplace_back(Partition(k, el, source, goal, hf, vf, &graph,
+                                      &asaplookup, &base_dist_map, elements,
+                                      MAX_DIST));
+
+    float ac = 0;
+    for (const Partition &p : partitions) {
+      ac += p.ac;
+    }
+
+    logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
+    logger.end_time = std::chrono::system_clock::now();
+    logger.summary();
+  } else if (partition_type == "wrp") {
+    std::vector<int> feasible_transit_candidates;
+    std::vector<int> visible_points_of_i;
+    for (int i : transit_candidates) {
+      if (i == source || i == goal) {
+        continue;
+      }
+
+      bool is_valid = false;
+      visible_points_of_i = vf->get_all_watchers(i);
+      for (int j : visible_points_of_i) {
+        if ((asaplookup.at(source)[j] != MAX_DIST) &&
+            (asaplookup.at(j)[goal] != MAX_DIST)) {
+          is_valid = true;
+          break;
+        }
+      }
+      if (is_valid) {
+        feasible_transit_candidates.emplace_back(i);
+      }
+    }
+
+    logger.tot_node_num = transit_candidates.size();
+    logger.log_file << transit_candidates.size() -
+                           feasible_transit_candidates.size()
+                    << " Nodes Removed\n";
+
+    std::pair<int, std::vector<Node>> result =
+        search(hf, vf, source, goal, feasible_transit_candidates, MAX_DIST);
+    int cost_of_cover_path = result.second[result.second.size() - 1].g;
+    float ac = 0;
+    for (int e : feasible_transit_candidates) {
+      ac += ((float)cost_of_cover_path - (float)base_dist_map[e]) /
+            (float)base_dist_map[e];
+    }
+    logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
+    logger.end_time = std::chrono::system_clock::now();
+    logger.summary();
   } else {
     throw std::invalid_argument("Partition type should be merge/df/df+");
   }
@@ -224,7 +325,11 @@ int main(int argc, char *argv[]) {
       logger.log_file << "Partition " << count << " ("
                       << partition.num_expanded_nodes << " Nodes Expanded)\n";
       partition.print_element(logger.log_file);
-      partition.print_cover_path(logger.log_file);
+      if (print_cover_path) {
+        partition.cover_path =
+            search(hf, vf, source, goal, partition.elements, MAX_DIST).second;
+        partition.print_cover_path(logger.log_file);
+      }
       count++;
     }
   }
