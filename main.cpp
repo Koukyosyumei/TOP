@@ -111,6 +111,7 @@ int main(int argc, char *argv[]) {
 
   logger.log_file << ": k=" << k << "\n";
   logger.log_file << ": el=" << el << "\n";
+  logger.log_file << ": m=" << m << "\n";
   logger.log_file << ": v=" << vf_type << "\n";
   logger.log_file << ": h=" << hf_type << "\n";
   logger.log_file << ": j=" << j_order_type << "\n";
