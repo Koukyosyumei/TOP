@@ -113,7 +113,7 @@ inline
   flat_hash_set<size_t> checked_partitions;
   merge_df_bb_search2(j_order_type, best_partitions, partitions,
                       checked_partitions, logger, best_sumcard, best_sumcost,
-                      hf_type, k, el, complete_search, valid_found,
+                      hf_type, k, el, m, complete_search, valid_found,
                       use_upperbound_cost, base_dist_map);
   if (m > 0) {
     trunc_path(goal, best_partitions, m, vf, asaplookup, base_dist_map, logger);
