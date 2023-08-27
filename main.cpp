@@ -196,8 +196,8 @@ int main(int argc, char *argv[]) {
 
   if (partition_type == "merge") {
     partitions =
-        merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
-                    &asaplookup, transit_candidates, complete_search,
+        merge_df_bb(k, el, m, hf_type, j_order_type, source, goal, hf, vf,
+                    &graph, &asaplookup, transit_candidates, complete_search,
                     use_upperbound_cost, logger, base_dist_map);
   } else if (partition_type == "df") {
     partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
