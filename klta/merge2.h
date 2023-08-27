@@ -183,8 +183,8 @@ bool merge_df_bb_search2(std::string ij_order_type,
       logger.skipped_count++;
       continue;
     }
-    partition_i_j->cover_path.clear();
-    partition_i_j->cover_path.shrink_to_fit();
+    // partition_i_j->cover_path.clear();
+    // partition_i_j->cover_path.shrink_to_fit();
 
     std::vector<Partition *> next_partitions;
     if (!partition_i_j->is_satisfying) {
