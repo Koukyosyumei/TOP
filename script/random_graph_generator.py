@@ -69,21 +69,25 @@ def grid_to_graph(grid):
 
             if is_valid_cell(grid, row - 1, col):  # Check the cell above
                 graph.add_edge(
-                    node_id_map[node_id(row, col)], node_id_map[node_id(row - 1, col)]
+                    node_id_map[node_id(row, col)
+                                ], node_id_map[node_id(row - 1, col)]
                 )
             if is_valid_cell(grid, row + 1, col):  # Check the cell below
                 graph.add_edge(
-                    node_id_map[node_id(row, col)], node_id_map[node_id(row + 1, col)]
+                    node_id_map[node_id(row, col)
+                                ], node_id_map[node_id(row + 1, col)]
                 )
             if is_valid_cell(grid, row, col - 1):  # Check the cell to the left
                 graph.add_edge(
-                    node_id_map[node_id(row, col)], node_id_map[node_id(row, col - 1)]
+                    node_id_map[node_id(row, col)
+                                ], node_id_map[node_id(row, col - 1)]
                 )
             if is_valid_cell(grid, row, col + 1):  # Check the cell to the right
                 graph.add_edge(
-                    node_id_map[node_id(row, col)], node_id_map[node_id(row, col + 1)]
+                    node_id_map[node_id(row, col)
+                                ], node_id_map[node_id(row, col + 1)]
                 )
-    return graph, start_node, goal_node
+    return graph, start_node, goal_node, node_id_map
 
 
 def read_graph(path):
@@ -184,6 +188,7 @@ if __name__ == "__main__":
 
     G = nx.Graph()
     source_and_goal = None
+    node_id_map = None
 
     if parsed_args.gtype == "gnp":
         G = nx.random_graphs.fast_gnp_random_graph(
@@ -194,12 +199,13 @@ if __name__ == "__main__":
     elif parsed_args.gtype == "sudoku":
         G = nx.sudoku_graph(graph_size)
     elif parsed_args.gtype == "grid":
-        grid = generate_grid_world(graph_size, graph_size, parsed_args.obstacle_frac)
-        G, source, goal = grid_to_graph(grid)
+        grid = generate_grid_world(
+            graph_size, graph_size, parsed_args.obstacle_frac)
+        G, source, goal, node_id_map = grid_to_graph(grid)
         source_and_goal = (source, goal)
     elif parsed_args.gtype == "fgrid":
         grid = read_graph(parsed_args.gridfile)
-        G, source, goal = grid_to_graph(grid)
+        G, source, goal, node_id_map = grid_to_graph(grid)
         source_and_goal = (source, goal)
 
     if parsed_args.num_transit_candidates == -1:
@@ -209,3 +215,5 @@ if __name__ == "__main__":
             list(G.nodes), parsed_args.num_transit_candidates
         )
     print_out_networkx_graph(G, transit_candidates, source_and_goal)
+    for k, v in node_id_map.items():
+        print(k, v)
