@@ -28,6 +28,10 @@ inline int get_center(int N, std::vector<std::vector<int>> *asaplookup,
   for (int n = 0; n < N; n++) {
     int tmp_dist = 0;
     for (int k : elements) {
+      // if (n == k) {
+      //   tmp_dist = MAX_DIST;
+      //   break;
+      // }
       tmp_dist += asaplookup->at(n)[k];
     }
     if (min_dist > tmp_dist) {
@@ -38,6 +42,7 @@ inline int get_center(int N, std::vector<std::vector<int>> *asaplookup,
   return min_id;
 }
 
+// assume that all edge costs are one
 inline std::vector<float>
 clustering_randomwalker(HeuristicFuncBase *hf, VisibilityFunc *vf,
                         int start_loc, int goal_loc,
@@ -45,42 +50,41 @@ clustering_randomwalker(HeuristicFuncBase *hf, VisibilityFunc *vf,
                         std::vector<std::vector<int>> &assignments,
                         std::vector<int> &center, int seed = 42) {
   std::mt19937 rng(seed);
+  std::vector<float> costs;
 
   for (int i = 0; i < assignments.size(); i++) {
-    for (int t : assignments[i]) {
+    if (assignments[i].size() == 0) {
+      continue;
     }
-  }
-  /*
-    float first_cost;
-    std::vector<int> first_path;
-    first_path.push_back(start_loc);
-    for (int i = 0; i < m - 1; i++) {
-      std::uniform_int_distribution<int> dist(
-          0, vf->graph->at(first_path[i]).size() - 1);
-      int randomIndex = dist(rng);
-      first_path.push_back(vf->graph->at(first_path[i])[randomIndex].first);
-      first_cost += (float)vf->graph->at(first_path[i])[randomIndex].second;
+    float first_cost = vf->asaplookup->at(start_loc)[center[i]];
+    std::vector<int> first_path = {center[i]};
+    if (m > first_cost) {
+      for (int j = 0; j < m - first_cost; j++) {
+        std::uniform_int_distribution<int> dist(
+            0, vf->graph->at(first_path[j]).size() - 1);
+        int randomIndex = dist(rng);
+        first_path.push_back(vf->graph->at(first_path[j])[randomIndex].first);
+        first_cost += (float)vf->graph->at(first_path[j])[randomIndex].second;
+      }
     }
-
-    std::vector<float> costs;
-
-    for (int transit_loc : target_elements) {
+    for (int transit_loc : assignments[i]) {
       std::vector<int> tmp_target_elements = {transit_loc};
       std::pair<int, std::vector<Node>> latter_path =
           search(hf, vf, first_path[first_path.size() - 1], goal_loc,
                  tmp_target_elements, MAX_DIST);
-      costs.push_back(first_cost +
-                      (float)latter_path.second[latter_path.second.size() -
-    1].g);
+      costs.push_back(
+          first_cost +
+          (float)latter_path.second[latter_path.second.size() - 1].g);
     }
-  */
+  }
   return costs;
 }
 
-inline void clustering(int k, std::vector<int> &transit_candidates,
-                       std::vector<std::vector<int>> *asaplookup,
-                       std::vector<std::vector<int>> &assignments,
-                       std::vector<int> &center, int max_itr = 100) {
+inline std::pair<std::vector<std::vector<int>>, std::vector<int>>
+clustering(int k, std::vector<int> &transit_candidates,
+           std::vector<std::vector<int>> *asaplookup, int max_itr = 100) {
+  std::vector<std::vector<int>> assignments;
+  std::vector<int> center;
   int N = asaplookup->size();
 
   // initial assignments
@@ -102,25 +106,23 @@ inline void clustering(int k, std::vector<int> &transit_candidates,
   for (int i = 0; i < max_itr; i++) {
 
     // calculate the new center
-    std::vector<int> new_center;
+    center.clear();
     for (int j = 0; j < assignments.size(); j++) {
-      new_center.push_back(get_center(N, asaplookup, assignments[j]));
+      center.push_back(get_center(N, asaplookup, assignments[j]));
+      assignments[j].clear();
     }
 
     // update the assignment
-    for (std::vector<int> &element : assignments) {
-      element.clear();
-    }
     for (int t : transit_candidates) {
       int min_dist = MAX_DIST;
-      int min_c;
-      for (int c : new_center) {
-        if (min_dist > asaplookup->at(c)[t]) {
-          min_c = c;
-          min_dist = asaplookup->at(c)[t];
+      int min_k;
+      for (int k = 0; k < center.size(); k++) {
+        if (min_dist > asaplookup->at(center[k])[t]) {
+          min_k = k;
+          min_dist = asaplookup->at(center[k])[t];
         }
       }
-      assignments[min_c].push_back(t);
+      assignments[min_k].emplace_back(t);
     }
 
     // chekc the difference
@@ -129,8 +131,6 @@ inline void clustering(int k, std::vector<int> &transit_candidates,
       break;
     }
     cur_hash_val = new_hash_val;
-
-    center = new_center;
   }
 
   bool cont_flag = true;
@@ -162,4 +162,6 @@ inline void clustering(int k, std::vector<int> &transit_candidates,
       }
     }
   }
+
+  return make_pair(assignments, center);
 }

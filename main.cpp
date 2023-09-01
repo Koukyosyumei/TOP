@@ -279,25 +279,27 @@ int main(int argc, char *argv[]) {
                            feasible_transit_candidates.size()
                     << " Nodes Removed\n";
 
-    std::vector<std::vector<int>> assignments;
-    std::vector<int> center;
-    clustering(k, feasible_transit_candidates, &asaplookup, assignments,
-               center);
+    auto clustering_result =
+        clustering(k, feasible_transit_candidates, vf->asaplookup);
+    std::vector<std::vector<int>> assignments = clustering_result.first;
+    std::vector<int> center = clustering_result.second;
 
-    std::vector<float> costs =
-        randomwalker(hf, vf, source, goal, feasible_transit_candidates, m);
+    std::vector<float> costs = clustering_randomwalker(
+        hf, vf, source, goal, feasible_transit_candidates, m, assignments,
+        center);
 
     float ac = 0;
-    for (int i = 0; i < feasible_transit_candidates.size(); i++) {
-      ac += ((float)costs[i] -
-             (float)base_dist_map[feasible_transit_candidates[i]]) /
-            (float)base_dist_map[feasible_transit_candidates[i]];
+    int i = 0;
+    for (std::vector<int> &ass : assignments) {
+      for (int t : ass) {
+        ac += ((float)costs[i] - (float)base_dist_map[t]) /
+              (float)base_dist_map[t];
+        i++;
+      }
     }
-
     logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
     logger.end_time = std::chrono::system_clock::now();
     logger.summary();
-
   } else if (partition_type == "naive") {
     std::vector<int> feasible_transit_candidates;
     std::vector<int> visible_points_of_i;
