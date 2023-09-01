@@ -22,6 +22,7 @@ int N = 0;
 #ifdef _MERGE2
 #include "klta/merge2.h"
 #endif
+#include "klta/clustering.h"
 #include "klta/covering_search.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
@@ -236,6 +237,52 @@ int main(int argc, char *argv[]) {
     logger.log_file << transit_candidates.size() -
                            feasible_transit_candidates.size()
                     << " Nodes Removed\n";
+
+    std::vector<float> costs =
+        randomwalker(hf, vf, source, goal, feasible_transit_candidates, m);
+
+    float ac = 0;
+    for (int i = 0; i < feasible_transit_candidates.size(); i++) {
+      ac += ((float)costs[i] -
+             (float)base_dist_map[feasible_transit_candidates[i]]) /
+            (float)base_dist_map[feasible_transit_candidates[i]];
+    }
+
+    logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
+    logger.end_time = std::chrono::system_clock::now();
+    logger.summary();
+
+  } else if (partition_type == "clustering") {
+    std::vector<int> feasible_transit_candidates;
+    std::vector<int> visible_points_of_i;
+    for (int i : transit_candidates) {
+      if (i == source || i == goal) {
+        continue;
+      }
+
+      bool is_valid = false;
+      visible_points_of_i = vf->get_all_watchers(i);
+      for (int j : visible_points_of_i) {
+        if ((asaplookup.at(source)[j] != MAX_DIST) &&
+            (asaplookup.at(j)[goal] != MAX_DIST)) {
+          is_valid = true;
+          break;
+        }
+      }
+      if (is_valid) {
+        feasible_transit_candidates.emplace_back(i);
+      }
+    }
+
+    logger.tot_node_num = transit_candidates.size();
+    logger.log_file << transit_candidates.size() -
+                           feasible_transit_candidates.size()
+                    << " Nodes Removed\n";
+
+    std::vector<std::vector<int>> assignments;
+    std::vector<int> center;
+    clustering(k, feasible_transit_candidates, &asaplookup, assignments,
+               center);
 
     std::vector<float> costs =
         randomwalker(hf, vf, source, goal, feasible_transit_candidates, m);
