@@ -152,3 +152,5 @@ for k in 2
  done
 done
 done
+
+python3 script/report.py -d "output/*" -o report_klm_summary_${VALUE_C}.csv -t report_klm_time_${VALUE_C}.csv
