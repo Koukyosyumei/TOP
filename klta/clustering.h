@@ -57,21 +57,27 @@ clustering_randomwalker(HeuristicFuncBase *hf, VisibilityFunc *vf,
       continue;
     }
     float first_cost = vf->asaplookup->at(start_loc)[center[i]];
-    std::vector<int> first_path = {center[i]};
+    std::vector<int> first_path = {start_loc};
     if (m > first_cost) {
-      for (int j = 0; j < m - first_cost; j++) {
+      first_cost = 0;
+      while (first_cost + vf->asaplookup->at(
+                              first_path[first_path.size() - 1])[center[i]] <
+             m) {
         std::uniform_int_distribution<int> dist(
-            0, vf->graph->at(first_path[j]).size() - 1);
+            0, vf->graph->at(first_path[first_path.size() - 1]).size() - 1);
         int randomIndex = dist(rng);
-        first_path.push_back(vf->graph->at(first_path[j])[randomIndex].first);
-        first_cost += (float)vf->graph->at(first_path[j])[randomIndex].second;
+        std::pair<int, int> e =
+            vf->graph->at(first_path[first_path.size() - 1])[randomIndex];
+        first_path.push_back(e.first);
+        first_cost += e.second;
       }
+      first_cost +=
+          vf->asaplookup->at(first_path[first_path.size() - 1])[center[i]];
     }
     for (int transit_loc : assignments[i]) {
       std::vector<int> tmp_target_elements = {transit_loc};
       std::pair<int, std::vector<Node>> latter_path =
-          search(hf, vf, first_path[first_path.size() - 1], goal_loc,
-                 tmp_target_elements, MAX_DIST);
+          search(hf, vf, center[i], goal_loc, tmp_target_elements, MAX_DIST);
       costs.push_back(
           first_cost +
           (float)latter_path.second[latter_path.second.size() - 1].g);
@@ -143,10 +149,7 @@ clustering(int k, std::vector<int> &transit_candidates,
         int min_c;
         for (int j = 0; j < assignments.size(); j++) {
           if (i != j) {
-            int tmp_dist = 0;
-            for (int e : assignments[i]) {
-              tmp_dist += asaplookup->at(center[j])[e];
-            }
+            int tmp_dist = asaplookup->at(center[i])[center[j]];
             if (min_dist > tmp_dist) {
               min_dist = tmp_dist;
               min_c = j;
