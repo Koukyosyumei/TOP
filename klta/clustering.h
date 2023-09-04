@@ -148,7 +148,7 @@ clustering(int k, std::vector<int> &transit_candidates,
         int min_dist = MAX_DIST;
         int min_c;
         for (int j = 0; j < assignments.size(); j++) {
-          if (i != j) {
+          if (i != j && assignments[j].size() > 0) {
             int tmp_dist = asaplookup->at(center[i])[center[j]];
             if (min_dist > tmp_dist) {
               min_dist = tmp_dist;
