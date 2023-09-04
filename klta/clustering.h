@@ -73,14 +73,28 @@ clustering_randomwalker(HeuristicFuncBase *hf, VisibilityFunc *vf,
       }
       first_cost +=
           vf->asaplookup->at(first_path[first_path.size() - 1])[center[i]];
-    }
-    for (int transit_loc : assignments[i]) {
-      std::vector<int> tmp_target_elements = {transit_loc};
-      std::pair<int, std::vector<Node>> latter_path =
-          search(hf, vf, center[i], goal_loc, tmp_target_elements, MAX_DIST);
-      costs.push_back(
-          first_cost +
-          (float)latter_path.second[latter_path.second.size() - 1].g);
+
+      for (int transit_loc : assignments[i]) {
+        std::vector<int> tmp_second_target_elements = {transit_loc};
+        std::pair<int, std::vector<Node>> latter_path = search(
+            hf, vf, center[i], goal_loc, tmp_second_target_elements, MAX_DIST);
+        costs.push_back(
+            first_cost +
+            (float)latter_path.second[latter_path.second.size() - 1].g);
+      }
+    } else {
+      std::vector<int> tmp_first_target_elements = {};
+      std::pair<int, std::vector<Node>> first_path = search(
+          hf, vf, start_loc, center[i], tmp_first_target_elements, MAX_DIST);
+
+      for (int transit_loc : assignments[i]) {
+        std::vector<int> tmp_second_target_elements = {transit_loc};
+        std::pair<int, std::vector<Node>> latter_path =
+            search(hf, vf, first_path.second[m - 1].location, goal_loc,
+                   tmp_second_target_elements, MAX_DIST);
+        costs.push_back(
+            m - 1 + (float)latter_path.second[latter_path.second.size() - 1].g);
+      }
     }
   }
   return costs;
