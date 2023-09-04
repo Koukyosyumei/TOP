@@ -54,13 +54,55 @@ for k in 2
   do
   for m in 5 10 30 50 100 200
   do   
-  for h in blind tunnel
+  for h in tunnel
    do
    for f in "lak510d.map" "orz000d.map" "orz201d.map" 
     do
     for seed in 1 2 3 4 5
      do
      ./topsolver -k ${k} -l ${el} -m ${m} -h ${h} -p random -b 100 -t ${TIMEOUT} -f output/${h}${k}${el}${m}${f}_${seed}random.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     done
+   done
+   echo ${k} ${el} ${m} ${h} & wait
+  done
+ done
+done
+done
+
+for k in 2
+ do
+ for el in 1
+  do
+  for m in 5 10 30 50 100 200
+   do    
+   for h in tunnel
+    do
+    for f in "den101d.map" "den201d.map" "lak202d.map"
+     do
+     for seed in 1 2 3 4 5
+      do
+      ./topsolver -k ${k} -l ${el} -m ${m} -h ${h} -p clustering -b 100 -t ${TIMEOUT} -f output/${h}${k}${el}${m}${f}_${seed}random.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
+     done
+    done
+    echo ${k} ${el} ${m} ${h} & wait
+   done
+  done
+ done
+done
+
+for k in 2
+ do
+ for el in 1
+  do
+  for m in 5 10 30 50 100 200
+  do   
+  for h in tunnel
+   do
+   for f in "lak510d.map" "orz000d.map" "orz201d.map" 
+    do
+    for seed in 1 2 3 4 5
+     do
+     ./topsolver -k ${k} -l ${el} -m ${m} -h ${h} -p clustering -b 100 -t ${TIMEOUT} -f output/${h}${k}${el}${m}${f}_${seed}random.out -c -u < "data/${f}_n=1_e=1_s=${seed}.in" &
      done
    done
    echo ${k} ${el} ${m} ${h} & wait
@@ -96,7 +138,7 @@ for k in 2
   do
   for m in 5 10 30 50 100 200
   do   
-  for h in blind tunnel
+  for h in tunnel
    do
    for f in "lak510d.map" "orz000d.map" "orz201d.map" 
     do
