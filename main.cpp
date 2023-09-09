@@ -39,7 +39,7 @@ int N = 0;
 
 int k = 2;
 int el = 0;
-int m = -1;
+float m_ratio = -1;
 int r = 1;
 float verbose = 1000;
 float timeout = std::numeric_limits<float>::max();
@@ -63,7 +63,7 @@ void parse_args(int argc, char *argv[]) {
       el = atoi(optarg);
       break;
     case 'm':
-      m = atoi(optarg);
+      m_ratio = atof(optarg);
       break;
     case 'v':
       vf_type = std::string(optarg);
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 
   logger.log_file << ": k=" << k << "\n";
   logger.log_file << ": el=" << el << "\n";
-  logger.log_file << ": m=" << m << "\n";
+  logger.log_file << ": m=" << m_ratio << "\n";
   logger.log_file << ": v=" << vf_type << "\n";
   logger.log_file << ": h=" << hf_type << "\n";
   logger.log_file << ": j=" << j_order_type << "\n";
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
 
   if (partition_type == "merge") {
     partitions =
-        merge_df_bb(k, el, m, hf_type, j_order_type, source, goal, hf, vf,
+        merge_df_bb(k, el, m_ratio, hf_type, j_order_type, source, goal, hf, vf,
                     &graph, &asaplookup, transit_candidates, complete_search,
                     use_upperbound_cost, logger, base_dist_map);
   } else if (partition_type == "df") {
@@ -239,7 +239,8 @@ int main(int argc, char *argv[]) {
                     << " Nodes Removed\n";
 
     std::vector<float> costs =
-        randomwalker(hf, vf, source, goal, feasible_transit_candidates, m);
+        randomwalker(hf, vf, source, goal, feasible_transit_candidates, m_ratio,
+                     base_dist_map);
 
     float ac = 0;
     for (int i = 0; i < feasible_transit_candidates.size(); i++) {
@@ -285,8 +286,8 @@ int main(int argc, char *argv[]) {
     std::vector<int> center = clustering_result.second;
 
     std::vector<float> costs = clustering_randomwalker(
-        hf, vf, source, goal, feasible_transit_candidates, m, assignments,
-        center);
+        hf, vf, source, goal, feasible_transit_candidates, m_ratio,
+        base_dist_map, assignments, center);
 
     float ac = 0;
     int i = 0;

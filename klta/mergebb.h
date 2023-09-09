@@ -12,8 +12,8 @@
 using phmap::flat_hash_map;
 using phmap::flat_hash_set;
 
-inline void trunc_path(int goal, std::vector<Partition> &partitions, int m,
-                       VisibilityFunc *vf,
+inline void trunc_path(int goal, std::vector<Partition> &partitions,
+                       float m_ratio, VisibilityFunc *vf,
                        std::vector<std::vector<int>> *asaplookup,
                        flat_hash_map<int, int> &base_dist_map, Logger &logger) {
   float ac = 0;
@@ -21,8 +21,9 @@ inline void trunc_path(int goal, std::vector<Partition> &partitions, int m,
   for (Partition &p : partitions) {
     if (p.is_satisfying) {
       sum_cardinarity += (float)p.elements.size();
-      if (p.cover_path.size() > m) {
-        for (int t : p.elements) {
+      for (int t : p.elements) {
+        int m = (int)(m_ratio * (float)base_dist_map[t]);
+        if (p.cover_path.size() > m) {
 #ifdef _AF
           if (p.cover_path[m].unseen[t]) {
             ac +=
@@ -48,9 +49,7 @@ inline void trunc_path(int goal, std::vector<Partition> &partitions, int m,
                   ((float)base_dist_map[t]);
           }
 #endif
-        }
-      } else {
-        for (int t : p.elements) {
+        } else {
           ac += ((float)p.cost_of_cover_path - (float)base_dist_map[t]) /
                 ((float)base_dist_map[t]);
         }
@@ -64,7 +63,7 @@ inline void trunc_path(int goal, std::vector<Partition> &partitions, int m,
 inline
 #endif
     std::vector<Partition>
-    merge_df_bb(int k, int el, int m, std::string hf_type,
+    merge_df_bb(int k, int el, float m_ratio, std::string hf_type,
                 std::string j_order_type, int source, int goal,
                 HeuristicFuncBase *hfunc, VisibilityFunc *vf,
                 std::vector<std::vector<std::pair<int, int>>> *graph,
@@ -113,10 +112,11 @@ inline
   flat_hash_set<size_t> checked_partitions;
   merge_df_bb_search2(j_order_type, best_partitions, partitions,
                       checked_partitions, logger, best_sumcard, best_sumcost,
-                      hf_type, k, el, m, complete_search, valid_found,
+                      hf_type, k, el, m_ratio, complete_search, valid_found,
                       use_upperbound_cost, base_dist_map);
-  if (m > 0) {
-    trunc_path(goal, best_partitions, m, vf, asaplookup, base_dist_map, logger);
+  if (m_ratio > 0) {
+    trunc_path(goal, best_partitions, m_ratio, vf, asaplookup, base_dist_map,
+               logger);
   }
   logger.summary();
   return best_partitions;

@@ -46,7 +46,8 @@ inline int get_center(int N, std::vector<std::vector<int>> *asaplookup,
 inline std::vector<float>
 clustering_randomwalker(HeuristicFuncBase *hf, VisibilityFunc *vf,
                         int start_loc, int goal_loc,
-                        std::vector<int> &target_elements, int m,
+                        std::vector<int> &target_elements, float m_ratio,
+                        flat_hash_map<int, int> &base_dist_map,
                         std::vector<std::vector<int>> &assignments,
                         std::vector<int> &center, int seed = 42) {
   std::mt19937 rng(seed);
@@ -56,38 +57,37 @@ clustering_randomwalker(HeuristicFuncBase *hf, VisibilityFunc *vf,
     if (assignments[i].size() == 0) {
       continue;
     }
-    float first_cost = vf->asaplookup->at(start_loc)[center[i]];
-    std::vector<int> first_path = {start_loc};
-    if (m > first_cost) {
-      first_cost = 0;
-      while (first_cost + vf->asaplookup->at(
-                              first_path[first_path.size() - 1])[center[i]] <
-             m) {
-        std::uniform_int_distribution<int> dist(
-            0, vf->graph->at(first_path[first_path.size() - 1]).size() - 1);
-        int randomIndex = dist(rng);
-        std::pair<int, int> e =
-            vf->graph->at(first_path[first_path.size() - 1])[randomIndex];
-        first_path.push_back(e.first);
-        first_cost += e.second;
-      }
-      first_cost +=
-          vf->asaplookup->at(first_path[first_path.size() - 1])[center[i]];
+    for (int transit_loc : assignments[i]) {
+      float first_cost = vf->asaplookup->at(start_loc)[center[i]];
+      std::vector<int> first_path = {start_loc};
+      int m = m_ratio * (float)base_dist_map[transit_loc];
+      if (m > first_cost) {
+        first_cost = 0;
+        while (first_cost + vf->asaplookup->at(
+                                first_path[first_path.size() - 1])[center[i]] <
+               m) {
+          std::uniform_int_distribution<int> dist(
+              0, vf->graph->at(first_path[first_path.size() - 1]).size() - 1);
+          int randomIndex = dist(rng);
+          std::pair<int, int> e =
+              vf->graph->at(first_path[first_path.size() - 1])[randomIndex];
+          first_path.push_back(e.first);
+          first_cost += e.second;
+        }
+        first_cost +=
+            vf->asaplookup->at(first_path[first_path.size() - 1])[center[i]];
 
-      for (int transit_loc : assignments[i]) {
         std::vector<int> tmp_second_target_elements = {transit_loc};
         std::pair<int, std::vector<Node>> latter_path = search(
             hf, vf, center[i], goal_loc, tmp_second_target_elements, MAX_DIST);
         costs.push_back(
             first_cost +
             (float)latter_path.second[latter_path.second.size() - 1].g);
-      }
-    } else {
-      std::vector<int> tmp_first_target_elements = {};
-      std::pair<int, std::vector<Node>> first_path = search(
-          hf, vf, start_loc, center[i], tmp_first_target_elements, MAX_DIST);
+      } else {
+        std::vector<int> tmp_first_target_elements = {};
+        std::pair<int, std::vector<Node>> first_path = search(
+            hf, vf, start_loc, center[i], tmp_first_target_elements, MAX_DIST);
 
-      for (int transit_loc : assignments[i]) {
         std::vector<int> tmp_second_target_elements = {transit_loc};
         std::pair<int, std::vector<Node>> latter_path =
             search(hf, vf, first_path.second[m - 1].location, goal_loc,

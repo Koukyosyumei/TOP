@@ -106,7 +106,7 @@ bool merge_df_bb_search2(std::string ij_order_type,
                          std::vector<Partition *> &partitions,
                          flat_hash_set<size_t> &checked_partitions,
                          Logger &logger, int &best_nap, float &best_mac,
-                         std::string hf_type, int k, int el, int m,
+                         std::string hf_type, int k, int el, float m,
                          bool complete_search, bool &valid_already_found,
                          bool use_upperbound_cost,
                          flat_hash_map<int, int> &base_dist_map) {
