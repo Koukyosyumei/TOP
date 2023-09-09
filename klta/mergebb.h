@@ -57,6 +57,7 @@ inline void trunc_path(int goal, std::vector<Partition> &partitions,
     }
   }
   logger.avg_path_cost = ac / sum_cardinarity;
+  logger.msg += " " + (std::to_string)(logger.avg_path_cost);
 }
 
 #ifndef _AF
@@ -117,6 +118,12 @@ inline
   if (m_ratio > 0) {
     trunc_path(goal, best_partitions, m_ratio, vf, asaplookup, base_dist_map,
                logger);
+    std::vector<float> m_ratio_candidates = {0.1, 0.3, 0.5, 1.0,
+                                             3.0, 5.0, 10.0};
+    for (float m_r : m_ratio_candidates) {
+      trunc_path(goal, best_partitions, m_r, vf, asaplookup, base_dist_map,
+                 logger);
+    }
   }
   logger.summary();
   return best_partitions;

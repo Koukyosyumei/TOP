@@ -31,7 +31,7 @@ for k in 2
  do
  for el in 1
   do
-  for m in 5 10 30 50 100 200
+  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
    do    
    for h in tunnel
     do
@@ -52,7 +52,7 @@ for k in 2
  do
  for el in 1
   do
-  for m in 5 10 30 50 100 200
+  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
   do   
   for h in tunnel
    do
@@ -73,7 +73,7 @@ for k in 2
  do
  for el in 1
   do
-  for m in 5 10 30 50 100 200
+  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
    do    
    for h in tunnel
     do
@@ -94,7 +94,7 @@ for k in 2
  do
  for el in 1
   do
-  for m in 5 10 30 50 100 200
+  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
   do   
   for h in tunnel
    do
@@ -115,7 +115,7 @@ for k in 2
  do
  for el in 1
   do
-  for m in 5 10 30 50 100 200
+  for m in 1.0
    do    
    for h in tunnel
     do
@@ -136,7 +136,7 @@ for k in 2
  do
  for el in 1
   do
-  for m in 5 10 30 50 100 200
+  for m in 1.0
   do   
   for h in tunnel
    do

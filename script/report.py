@@ -95,7 +95,8 @@ if __name__ == "__main__":
             num_anonymized_paths = lines[i + 9].split(": ")[1]
             avg_cost_anonymized_paths = lines[i + 10].split(": ")[1]
             total_time = lines[i + 11].split(": ")[1].split(" [ms]")[0]
-            lowerbound_cost = lines[i + 12].split(": ")[1]
+            msg = lines[i + 13].split(": ")[1]
+            lowerbound_cost = lines[i + 13].split(": ")[1]
 
             rows.append(
                 [
@@ -124,6 +125,7 @@ if __name__ == "__main__":
                     num_expanded_nodes_till_first,
                     avg_cost_anonymized_paths,
                     total_time,
+                    msg,
                     lowerbound_cost,
                     num_duplicated_partitions,
                 ]
@@ -158,6 +160,7 @@ if __name__ == "__main__":
         "num_expanded_nodes_till_first",
         "avg_cost_anonymized_paths",
         "total_time",
+        "msg",
         "lowebound_cost",
         "num_duplicated_partitions",
     ]
