@@ -31,7 +31,7 @@ for k in 2 3 5
  do
  for el in 1
   do
-  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
+  for m in 300
    do    
    for h in tunnel
     do
@@ -52,7 +52,7 @@ for k in 2 3 5
  do
  for el in 1
   do
-  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
+  for m in 300
   do   
   for h in tunnel
    do
@@ -73,7 +73,7 @@ for k in 2 3 5
  do
  for el in 1
   do
-  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
+  for m in 300
    do    
    for h in tunnel
     do
@@ -94,7 +94,7 @@ for k in 2 3 5
  do
  for el in 1
   do
-  for m in 0.1 0.3 0.5 1.0 2.0 3.0 5.0 10.0
+  for m in 300
   do   
   for h in tunnel
    do
@@ -115,7 +115,7 @@ for k in 2 3 5
  do
  for el in 1
   do
-  for m in 1.0
+  for m in 300
    do    
    for h in tunnel
     do
@@ -136,7 +136,7 @@ for k in 2 3 5
  do
  for el in 1
   do
-  for m in 1.0
+  for m in 300
   do   
   for h in tunnel
    do
@@ -153,4 +153,4 @@ for k in 2 3 5
 done
 done
 
-python3 script/report.py -d "output/*" -o report_klm_summary_${VALUE_C}.csv -t report_klm_time_${VALUE_C}.csv
+python3 script/report.py -d "output/*" -o report_300klm_summary_${VALUE_C}.csv -t report_300klm_time_${VALUE_C}.csv
