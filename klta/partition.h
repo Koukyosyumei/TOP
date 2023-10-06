@@ -8,12 +8,34 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 using phmap::flat_hash_map;
 using phmap::flat_hash_set;
+
+inline std::pair<std::vector<int>, std::vector<int>>
+splitAndMerge(const std::vector<int> &a, const std::vector<int> &b,
+              std::mt19937 &gen) {
+  std::uniform_int_distribution<> disA(1, a.size() - 1);
+  std::uniform_int_distribution<> disB(1, b.size() - 1);
+  int splitIndexA = disA(gen);
+  int splitIndexB = disB(gen);
+
+  std::vector<int> a_first_half(a.begin(), a.begin() + splitIndexA);
+  std::vector<int> a_second_half(a.begin() + splitIndexA, a.end());
+  std::vector<int> b_first_half(b.begin(), b.begin() + splitIndexB);
+  std::vector<int> b_second_half(b.begin() + splitIndexB, b.end());
+
+  std::vector<int> result1 = a_first_half;
+  result1.insert(result1.end(), b_second_half.begin(), b_second_half.end());
+
+  std::vector<int> result2 = b_first_half;
+  result2.insert(result2.end(), a_second_half.begin(), a_second_half.end());
+  return std::make_pair(result1, result2);
+}
 
 struct Partition {
   int k, el;
@@ -184,7 +206,6 @@ struct Partition {
     std::vector<int> new_elements(elements);
     new_elements.insert(new_elements.end(), other.elements.begin(),
                         other.elements.end());
-
     Partition par = Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
                               base_dist_map, new_elements, upperbound_cost);
     par.h_to_unseen_min = std::min(h_to_unseen_min, other.h_to_unseen_min);
@@ -193,11 +214,45 @@ struct Partition {
     return par;
   }
 
+  std::pair<Partition *, Partition *> merge_split(Partition *other,
+                                                  std::mt19937 &gen) {
+    std::pair<std::vector<int>, std::vector<int>> res =
+        splitAndMerge(elements, other->elements, gen);
+
+    Partition *par1 =
+        new Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
+                      base_dist_map, res.first, MAX_DIST);
+    par1->calculate_singleton_h_value();
+    Partition *par2 =
+        new Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
+                      base_dist_map, res.second, MAX_DIST);
+    par2->calculate_singleton_h_value();
+    return std::make_pair(par1, par2);
+  }
+
+  std::pair<Partition *, Partition *> random_split(int seed) {
+    std::mt19937 gen(seed);
+    std::uniform_int_distribution<> dis(1, elements.size() - 1);
+
+    int splitIndex = dis(gen);
+    std::vector<int> firstHalf(elements.begin(), elements.begin() + splitIndex);
+    std::vector<int> secondHalf(elements.begin() + splitIndex, elements.end());
+
+    Partition *par1 =
+        new Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
+                      base_dist_map, firstHalf, MAX_DIST);
+    par1->calculate_singleton_h_value();
+    Partition *par2 =
+        new Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
+                      base_dist_map, secondHalf, MAX_DIST);
+    par2->calculate_singleton_h_value();
+    return std::make_pair(par1, par2);
+  }
+
   Partition *merge(Partition *other, int upperbound_cost) {
     std::vector<int> new_elements(elements);
     new_elements.insert(new_elements.end(), other->elements.begin(),
                         other->elements.end());
-
     Partition *par =
         new Partition(k, el, source, goal, hfunc, vf, graph, asaplookup,
                       base_dist_map, new_elements, upperbound_cost);
