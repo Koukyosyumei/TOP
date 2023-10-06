@@ -12,13 +12,61 @@
 using phmap::flat_hash_map;
 using phmap::flat_hash_set;
 
+inline void trunc_path(int goal, std::vector<Partition> &partitions,
+                       float m_ratio, VisibilityFunc *vf,
+                       std::vector<std::vector<int>> *asaplookup,
+                       flat_hash_map<int, int> &base_dist_map, Logger &logger) {
+  float ac = 0;
+  float sum_cardinarity = 0;
+  for (Partition &p : partitions) {
+    if (p.is_satisfying) {
+      sum_cardinarity += (float)p.elements.size();
+      for (int t : p.elements) {
+        int m = (int)(m_ratio * (float)base_dist_map[t]);
+        if (p.cover_path.size() > m) {
+#ifdef _AF
+          if (p.cover_path[m].unseen[t]) {
+            ac +=
+                ((float)m + (float)asaplookup->at(p.cover_path[m].location)[t] +
+                 (float)asaplookup->at(t)[goal] - (float)base_dist_map[t]) /
+                ((float)base_dist_map[t]);
+          } else {
+            ac += ((float)m +
+                   (float)asaplookup->at(p.cover_path[m].location)[goal] -
+                   (float)base_dist_map[t]) /
+                  ((float)base_dist_map[t]);
+          }
+#else
+          if (p.cover_path[m].unseen.find(t) != p.cover_path[m].unseen.end()) {
+            ac +=
+                ((float)m + (float)asaplookup->at(p.cover_path[m].location)[t] +
+                 (float)asaplookup->at(t)[goal] - (float)base_dist_map[t]) /
+                ((float)base_dist_map[t]);
+          } else {
+            ac += ((float)m +
+                   (float)asaplookup->at(p.cover_path[m].location)[goal] -
+                   (float)base_dist_map[t]) /
+                  ((float)base_dist_map[t]);
+          }
+#endif
+        } else {
+          ac += ((float)p.cost_of_cover_path - (float)base_dist_map[t]) /
+                ((float)base_dist_map[t]);
+        }
+      }
+    }
+  }
+  logger.avg_path_cost = ac / sum_cardinarity;
+  logger.msg += " " + (std::to_string)(logger.avg_path_cost);
+}
+
 #ifndef _AF
 inline
 #endif
     std::vector<Partition>
-    merge_df_bb(int k, int el, std::string hf_type, std::string j_order_type,
-                int source, int goal, HeuristicFuncBase *hfunc,
-                VisibilityFunc *vf,
+    merge_df_bb(int k, int el, float m_ratio, std::string hf_type,
+                std::string j_order_type, int source, int goal,
+                HeuristicFuncBase *hfunc, VisibilityFunc *vf,
                 std::vector<std::vector<std::pair<int, int>>> *graph,
                 std::vector<std::vector<int>> *asaplookup,
                 std::vector<int> &transit_candidates, bool complete_search,
@@ -65,8 +113,18 @@ inline
   flat_hash_set<size_t> checked_partitions;
   merge_df_bb_search2(j_order_type, best_partitions, partitions,
                       checked_partitions, logger, best_sumcard, best_sumcost,
-                      hf_type, k, el, complete_search, valid_found,
+                      hf_type, k, el, m_ratio, complete_search, valid_found,
                       use_upperbound_cost, base_dist_map);
+  if (m_ratio > 0) {
+    trunc_path(goal, best_partitions, m_ratio, vf, asaplookup, base_dist_map,
+               logger);
+    std::vector<float> m_ratio_candidates = {0.1, 0.3, 0.5, 1.0, 2.0,
+                                             3.0, 5.0, 10.0};
+    for (float m_r : m_ratio_candidates) {
+      trunc_path(goal, best_partitions, m_r, vf, asaplookup, base_dist_map,
+                 logger);
+    }
+  }
   logger.summary();
   return best_partitions;
 }

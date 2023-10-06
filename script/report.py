@@ -44,13 +44,14 @@ if __name__ == "__main__":
 
             k = lines[1].split("=")[1]
             el = lines[2].split("=")[1]
-            v = lines[3].split("=")[1]
-            h = lines[4].split("=")[1]
-            j = lines[5].split("=")[1]
-            c = lines[6].split("=")[1]
-            u = lines[7].split("=")[1]
-            p = lines[8].split("=")[1]
-            r = lines[9].split("=")[1]
+            m = lines[3].split("=")[1]
+            v = lines[4].split("=")[1]
+            h = lines[5].split("=")[1]
+            j = lines[6].split("=")[1]
+            c = lines[7].split("=")[1]
+            u = lines[8].split("=")[1]
+            p = lines[9].split("=")[1]
+            r = lines[10].split("=")[1]
 
             removed_node_num = 0
             times_log = []
@@ -94,7 +95,8 @@ if __name__ == "__main__":
             num_anonymized_paths = lines[i + 9].split(": ")[1]
             avg_cost_anonymized_paths = lines[i + 10].split(": ")[1]
             total_time = lines[i + 11].split(": ")[1].split(" [ms]")[0]
-            lowerbound_cost = lines[i + 12].split(": ")[1]
+            msg = lines[i + 12].split(": ")[1]
+            lowerbound_cost = lines[i + 13].split(": ")[1]
 
             rows.append(
                 [
@@ -105,6 +107,7 @@ if __name__ == "__main__":
                     s,
                     k,
                     el,
+                    m,
                     v,
                     h,
                     j,
@@ -122,6 +125,7 @@ if __name__ == "__main__":
                     num_expanded_nodes_till_first,
                     avg_cost_anonymized_paths,
                     total_time,
+                    msg,
                     lowerbound_cost,
                     num_duplicated_partitions,
                 ]
@@ -138,6 +142,7 @@ if __name__ == "__main__":
         "seed",
         "k",
         "el",
+        "m",
         "visibility_func",
         "heuristic_func",
         "order_of_j",
@@ -155,6 +160,7 @@ if __name__ == "__main__":
         "num_expanded_nodes_till_first",
         "avg_cost_anonymized_paths",
         "total_time",
+        "msg",
         "lowebound_cost",
         "num_duplicated_partitions",
     ]
