@@ -56,7 +56,6 @@ inline void trunc_path(int goal, std::vector<Partition> &partitions,
       }
     }
   }
-  logger.avg_path_cost = ac / sum_cardinarity;
   logger.msg += " " + (std::to_string)(logger.avg_path_cost);
 }
 
@@ -116,14 +115,23 @@ inline
                       hf_type, k, el, m_ratio, complete_search, valid_found,
                       use_upperbound_cost, base_dist_map);
   if (m_ratio > 0) {
+    std::chrono::system_clock::time_point mb_start_time, mb_end_time;
+    mb_start_time = std::chrono::system_clock::now();
+    logger.msg += " " + (std::to_string)(logger.avg_path_cost);
     trunc_path(goal, best_partitions, m_ratio, vf, asaplookup, base_dist_map,
                logger);
-    std::vector<float> m_ratio_candidates = {0.1, 0.3, 0.5, 1.0, 2.0,
-                                             3.0, 5.0, 10.0};
+    std::vector<float> m_ratio_candidates = {0.1, 0.3, 0.5, 1.0,
+                                             2.0, 3.0, 5.0, 10.0};
     for (float m_r : m_ratio_candidates) {
       trunc_path(goal, best_partitions, m_r, vf, asaplookup, base_dist_map,
                  logger);
     }
+    mb_end_time = std::chrono::system_clock::now();
+    logger.msg +=
+        " " +
+        (std::to_string)(std::chrono::duration_cast<std::chrono::milliseconds>(
+                             mb_end_time - mb_start_time)
+                             .count());
   }
   logger.summary();
   return best_partitions;
