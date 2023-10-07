@@ -391,6 +391,7 @@ struct Logger {
   long long duplicated_count = 0;
   long long valid_count = 0;
   long long not_promissing_count = 0;
+  std::string msg = "";
 
   std::ofstream log_file;
 
@@ -444,6 +445,7 @@ struct Logger {
                     end_time - start_time)
                     .count()
              << " [ms]\n";
+    log_file << "- MSG: " << msg << "\n";
   }
 
   void close() { log_file.close(); }

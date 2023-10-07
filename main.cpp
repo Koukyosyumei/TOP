@@ -22,10 +22,12 @@ int N = 0;
 #ifdef _MERGE2
 #include "klta/merge2.h"
 #endif
+#include "klta/clustering.h"
 #include "klta/covering_search.h"
 #include "klta/greedypartition.h"
 #include "klta/heuristic.h"
 #include "klta/mergebb.h"
+#include "klta/randomwalk.h"
 #include "klta/sa.h"
 #include "klta/utils.h"
 #include "klta/visibility.h"
@@ -38,6 +40,7 @@ int N = 0;
 
 int k = 2;
 int el = 0;
+float m_ratio = -1;
 int r = 1;
 float verbose = 1000;
 float timeout = std::numeric_limits<float>::max();
@@ -52,13 +55,16 @@ bool print_cover_path = false;
 
 void parse_args(int argc, char *argv[]) {
   int opt;
-  while ((opt = getopt(argc, argv, "k:l:v:r:p:h:j:b:t:f:cua")) != -1) {
+  while ((opt = getopt(argc, argv, "k:l:m:v:r:p:h:j:b:t:f:cua")) != -1) {
     switch (opt) {
     case 'k':
       k = atoi(optarg);
       break;
     case 'l':
       el = atoi(optarg);
+      break;
+    case 'm':
+      m_ratio = atof(optarg);
       break;
     case 'v':
       vf_type = std::string(optarg);
@@ -107,6 +113,7 @@ int main(int argc, char *argv[]) {
 
   logger.log_file << ": k=" << k << "\n";
   logger.log_file << ": el=" << el << "\n";
+  logger.log_file << ": m=" << m_ratio << "\n";
   logger.log_file << ": v=" << vf_type << "\n";
   logger.log_file << ": h=" << hf_type << "\n";
   logger.log_file << ": j=" << j_order_type << "\n";
@@ -192,8 +199,8 @@ int main(int argc, char *argv[]) {
 
   if (partition_type == "merge") {
     partitions =
-        merge_df_bb(k, el, hf_type, j_order_type, source, goal, hf, vf, &graph,
-                    &asaplookup, transit_candidates, complete_search,
+        merge_df_bb(k, el, m_ratio, hf_type, j_order_type, source, goal, hf, vf,
+                    &graph, &asaplookup, transit_candidates, complete_search,
                     use_upperbound_cost, logger, base_dist_map);
   } else if (partition_type == "df") {
     partitions = greedypartition(k, el, hf_type, j_order_type, source, goal, hf,
@@ -210,6 +217,96 @@ int main(int argc, char *argv[]) {
         simulated_annealing(k, el, hf_type, source, goal, hf, vf, &graph,
                             &asaplookup, transit_candidates, complete_search,
                             use_upperbound_cost, logger, base_dist_map);
+  } else if (partition_type == "random") {
+    std::vector<int> feasible_transit_candidates;
+    std::vector<int> visible_points_of_i;
+    for (int i : transit_candidates) {
+      if (i == source || i == goal) {
+        continue;
+      }
+
+      bool is_valid = false;
+      visible_points_of_i = vf->get_all_watchers(i);
+      for (int j : visible_points_of_i) {
+        if ((asaplookup.at(source)[j] != MAX_DIST) &&
+            (asaplookup.at(j)[goal] != MAX_DIST)) {
+          is_valid = true;
+          break;
+        }
+      }
+      if (is_valid) {
+        feasible_transit_candidates.emplace_back(i);
+      }
+    }
+
+    logger.tot_node_num = transit_candidates.size();
+    logger.log_file << transit_candidates.size() -
+                           feasible_transit_candidates.size()
+                    << " Nodes Removed\n";
+
+    std::vector<float> costs =
+        randomwalker(hf, vf, source, goal, feasible_transit_candidates, m_ratio,
+                     base_dist_map);
+
+    float ac = 0;
+    for (int i = 0; i < feasible_transit_candidates.size(); i++) {
+      ac += ((float)costs[i] -
+             (float)base_dist_map[feasible_transit_candidates[i]]) /
+            (float)base_dist_map[feasible_transit_candidates[i]];
+    }
+
+    logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
+    logger.end_time = std::chrono::system_clock::now();
+    logger.summary();
+
+  } else if (partition_type == "clustering") {
+    std::vector<int> feasible_transit_candidates;
+    std::vector<int> visible_points_of_i;
+    for (int i : transit_candidates) {
+      if (i == source || i == goal) {
+        continue;
+      }
+
+      bool is_valid = false;
+      visible_points_of_i = vf->get_all_watchers(i);
+      for (int j : visible_points_of_i) {
+        if ((asaplookup.at(source)[j] != MAX_DIST) &&
+            (asaplookup.at(j)[goal] != MAX_DIST)) {
+          is_valid = true;
+          break;
+        }
+      }
+      if (is_valid) {
+        feasible_transit_candidates.emplace_back(i);
+      }
+    }
+
+    logger.tot_node_num = transit_candidates.size();
+    logger.log_file << transit_candidates.size() -
+                           feasible_transit_candidates.size()
+                    << " Nodes Removed\n";
+
+    auto clustering_result =
+        clustering(k, feasible_transit_candidates, vf->asaplookup);
+    std::vector<std::vector<int>> assignments = clustering_result.first;
+    std::vector<int> center = clustering_result.second;
+
+    std::vector<float> costs = clustering_randomwalker(
+        hf, vf, source, goal, feasible_transit_candidates, m_ratio,
+        base_dist_map, assignments, center);
+
+    float ac = 0;
+    int i = 0;
+    for (std::vector<int> &ass : assignments) {
+      for (int t : ass) {
+        ac += ((float)costs[i] - (float)base_dist_map[t]) /
+              (float)base_dist_map[t];
+        i++;
+      }
+    }
+    logger.avg_path_cost = ac / (float)feasible_transit_candidates.size();
+    logger.end_time = std::chrono::system_clock::now();
+    logger.summary();
   } else if (partition_type == "naive") {
     std::vector<int> feasible_transit_candidates;
     std::vector<int> visible_points_of_i;
