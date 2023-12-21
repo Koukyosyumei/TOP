@@ -1,5 +1,5 @@
 # KLTA
-Code for "Transit Obfuscation Problem"
+Code for "On the Transit Obfuscation Problem"
 
 Build
 
