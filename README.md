@@ -13,7 +13,7 @@ Code for "On the Transit Obfuscation Problem"
 - Usage
 
 ```bash
-./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -f output.out -c -u < "input.in"
+./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -f output.out -c -u < input.in
 ```
 
 - Options
