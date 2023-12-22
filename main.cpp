@@ -28,6 +28,7 @@ int N = 0;
 #include "klta/heuristic.h"
 #include "klta/mergebb.h"
 #include "klta/randomwalk.h"
+#include "klta/sa.h"
 #include "klta/utils.h"
 #include "klta/visibility.h"
 #include <chrono>
@@ -211,6 +212,11 @@ int main(int argc, char *argv[]) {
                                  vf, &graph, &asaplookup, transit_candidates,
                                  complete_search, use_upperbound_cost, logger,
                                  true, base_dist_map);
+  } else if (partition_type == "sa") {
+    partitions =
+        simulated_annealing(k, el, hf_type, source, goal, hf, vf, &graph,
+                            &asaplookup, transit_candidates, complete_search,
+                            use_upperbound_cost, logger, base_dist_map);
   } else if (partition_type == "random") {
     std::vector<int> feasible_transit_candidates;
     std::vector<int> visible_points_of_i;
