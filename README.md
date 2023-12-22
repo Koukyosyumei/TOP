@@ -4,18 +4,18 @@ Code for "On the Transit Obfuscation Problem"
 
 ## CLI TOol
 
-### Build
+- Build
 
 ```
 ./script/build.sh
 ```
 
-### Usage
+- Usage
 
 ```
 ```
 
-### Options
+- Options
 
 ```
 -k: k of (k, el, m)-Anonymity (default: 2).
@@ -34,7 +34,7 @@ Code for "On the Transit Obfuscation Problem"
 -a: Print cover path details.
 ```
 
-### Input Format
+- Input Format
 
 The tool expects input in the following format from standard input:
 
@@ -46,7 +46,7 @@ num_transit_candidates   // Number of transit candidates
 transit_candidates       // List of transit candidates
 ```
 
-### Output
+- Output
 
 The tool outputs details about the setup and, if successful, information about the optimal partition, including the partition type, the number of nodes expanded, and the elements within each partition.
 
