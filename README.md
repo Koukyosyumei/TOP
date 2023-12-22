@@ -1,5 +1,3 @@
-<img src="img/concept_klm.drawio.svg">
-
 # TOP
 
 Code for "On the Transit Obfuscation Problem" (AAMAS 2024). 
