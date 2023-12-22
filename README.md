@@ -52,5 +52,3 @@ transit_candidates       // List of transit candidates
 - Output
 
 The tool outputs details about the setup and, if successful, information about the optimal partition, including the partition type, the number of nodes expanded, and the elements within each partition.
-
-
