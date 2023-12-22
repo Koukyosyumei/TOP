@@ -2,7 +2,7 @@
 
 Code for "On the Transit Obfuscation Problem"
 
-## CLI TOol
+## CLI Tool
 
 - Build
 
@@ -13,6 +13,7 @@ Code for "On the Transit Obfuscation Problem"
 - Usage
 
 ```
+./topsolver -k ${k} -l ${el} -h ${h} -j ${j} -b 100 -t ${TIMEOUT} -f output.out -c -u < "input.in"
 ```
 
 - Options
