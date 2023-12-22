@@ -18,9 +18,9 @@ Code for "On the Transit Obfuscation Problem"
 ### Options
 
 ```
--k: Size of the partition (default: 2).
--l: Elitism level for tunnel heuristic (default: 0).
--m: Merging ratio for merging partitions (default: -1).
+-k: k of (k, el, m)-Anonymity (default: 2).
+-l: el of (k, el, m)-Anonymity (default: 0).
+-m: m of (k, el, m)-Anonymity (default: -1, which is equivalent to infinity).
 -v: Visibility function type (options: identity, onestep, radius) (default: identity).
 -r: Radius for the radius-based visibility function (default: 1).
 -p: Partitioning type (options: merge, df, df+, random, clustering, naive, wrp) (default: merge).
