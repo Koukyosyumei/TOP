@@ -1,6 +1,7 @@
 # TOP
 
-Code for "On the Transit Obfuscation Problem" (AAMAS 2024). 
+Code for "Hideaki Takahashi and Alex Fukunaga. On the transit obfuscation problem. In International Conference on Autonomous Agents and Multi‐Agent Systems,
+2024". 
 
 The purpose of the Transit Obfuscation Problem is to travel from a start location to an end location while covering a specific transit point, concealing it from potential adversaries. The paper introduces the concept of transit anonymity, providing a quantitative guarantee of the anonymity of a specific transit point, even against a powerful adversary with full knowledge of the path planning algorithm.
 
