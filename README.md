@@ -53,3 +53,15 @@ transit_candidates       // List of transit candidates
 - Output
 
 The tool outputs details about the setup and, if successful, information about the optimal partition, including the partition type, the number of nodes expanded, and the elements within each partition.
+
+- Citation
+
+```
+@inproceedings{Takahashi2024OnTT,
+  title={On the Transit Obfuscation Problem},
+  author={Hideaki Takahashi and Alex Fukunaga},
+  booktitle={Adaptive Agents and Multi-Agent Systems},
+  year={2024},
+  url={https://api.semanticscholar.org/CorpusID:267627980}
+}
+```
